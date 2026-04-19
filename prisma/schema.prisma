@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  TUTOR
+  ADMIN
+}
+
+model User {
+  id             String                 @id @default(cuid())
+  name           String
+  email          String                 @unique
+  passwordHash   String
+  role           Role
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  accessibility  AccessibilityProfile?
+  attempts       Attempt[]
+  sessions       Session[]
+  trackProgress  TrackProgress[]
+}
+
+model AccessibilityProfile {
+  id             String   @id @default(cuid())
+  fontSize       Int      @default(16)
+  spacing        Int      @default(24)
+  guidance       Boolean  @default(false)
+  minimal        Boolean  @default(false)
+  reducedMotion  Boolean  @default(false)
+  focusMode      String   @default("calmo")
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model SkillTrack {
+  id            String          @id @default(cuid())
+  slug          String          @unique
+  name          String
+  description   String
+  estimatedTime String
+  lessons       Lesson[]
+  progress      TrackProgress[]
+}
+
+model Lesson {
+  id            String      @id @default(cuid())
+  skillTrackId  String
+  skillTrack    SkillTrack  @relation(fields: [skillTrackId], references: [id], onDelete: Cascade)
+  title         String
+  prompt        String
+  story         String
+  explanation   String
+  answer        Int
+  level         String
+  goal          String
+  tip           String
+  orderIndex    Int
+  attempts      Attempt[]
+}
+
+model TrackProgress {
+  id            String      @id @default(cuid())
+  userId        String
+  skillTrackId  String
+  lessonIndex   Int         @default(0)
+  correct       Int         @default(0)
+  attempts      Int         @default(0)
+  streak        Int         @default(0)
+  mastery       Int         @default(0)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skillTrack    SkillTrack  @relation(fields: [skillTrackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillTrackId])
+}
+
+model Attempt {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  answer      Int
+  isCorrect   Boolean
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  tokenHash    String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
