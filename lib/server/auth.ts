@@ -174,6 +174,10 @@ export async function requireCurrentUser() {
   return session.user;
 }
 
+export async function revokeAllUserSessions(userId: string) {
+  await prismaAuth.session.deleteMany({ where: { userId } });
+}
+
 export async function revokeCurrentSession() {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;

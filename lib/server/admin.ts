@@ -1,6 +1,6 @@
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/server/prisma";
-import { hashPassword } from "@/lib/server/auth";
+import { hashPassword, revokeAllUserSessions } from "@/lib/server/auth";
 import { NotFoundError, requireActor } from "@/lib/server/permissions";
 import type { CreateTutorInput, SetRoleInput, TutorLinkInput } from "@/lib/schemas";
 
@@ -59,7 +59,7 @@ export async function setUserActive(userId: string, active: boolean) {
   });
 
   if (!active) {
-    await prismaDb.session.deleteMany({ where: { userId } });
+    await revokeAllUserSessions(userId);
   }
 
   return updated;

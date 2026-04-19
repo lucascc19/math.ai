@@ -131,7 +131,7 @@ export function DashboardApp() {
   }
 
   return (
-    <main className="pb-16">
+    <main>
       <div className="gradient-bar h-1" />
       <section className="content-shell adaptive-stack mx-auto flex w-full flex-col px-4 py-6 md:px-6 md:py-8 xl:px-8">
         <header className="adaptive-stack grid items-start xl:grid-cols-[minmax(0,1.18fr)_minmax(380px,0.82fr)]">
@@ -405,17 +405,6 @@ export function DashboardApp() {
               { label: "Trilhas publicadas", value: String(dashboard.admin.publishedTracks) },
               { label: "Licoes", value: String(dashboard.admin.totalLessons) },
               { label: "Revisoes pendentes", value: String(dashboard.admin.pendingReviews) }
-            ]}
-          />
-          <RolePanel
-            badge="Roadmap"
-            title="Proxima evolucao"
-            description="A base agora separa apresentacao publica, autenticacao e area protegida para o aluno."
-            icon={Sparkles}
-            metrics={[
-              { label: "Landing page", value: "Ativa" },
-              { label: "Login separado", value: "Ativo" },
-              { label: "Cadastro separado", value: "Ativo" }
             ]}
           />
         </section>
