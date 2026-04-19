@@ -106,3 +106,17 @@ export async function listUsers(params: { role?: Role; active?: boolean } = {}) 
     orderBy: { createdAt: "desc" }
   });
 }
+
+export async function listTutorLinks() {
+  await requireActor("tutorLink.manage");
+
+  return prismaDb.tutorStudent.findMany({
+    select: {
+      id: true,
+      createdAt: true,
+      tutor: { select: { id: true, name: true, email: true } },
+      student: { select: { id: true, name: true, email: true } }
+    },
+    orderBy: { createdAt: "desc" }
+  });
+}

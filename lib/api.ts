@@ -1,4 +1,13 @@
-import type { LoginInput, RegisterInput, SettingsInput, SubmitAnswerInput } from "@/lib/schemas";
+import type {
+  CreateTutorInput,
+  LoginInput,
+  RegisterInput,
+  SetRoleInput,
+  SettingsInput,
+  SubmitAnswerInput,
+  TutorLinkInput
+} from "@/lib/schemas";
+import type { Role } from "@prisma/client";
 
 async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {
@@ -55,7 +64,66 @@ export const api = {
     request<AnswerResponse>("/api/session/answer", {
       method: "POST",
       body: JSON.stringify(input)
-    })
+    }),
+  logoutAll: () => request<{ ok: true }>("/api/auth/logout-all", { method: "POST" }),
+  admin: {
+    listUsers: (filters: { role?: Role; active?: boolean } = {}) => {
+      const params = new URLSearchParams();
+      if (filters.role) params.set("role", filters.role);
+      if (filters.active !== undefined) params.set("active", String(filters.active));
+      const query = params.toString();
+      return request<{ users: AdminUser[] }>(`/api/admin/users${query ? `?${query}` : ""}`);
+    },
+    createTutor: (input: CreateTutorInput) =>
+      request<{ tutor: AdminUser }>("/api/admin/tutors", {
+        method: "POST",
+        body: JSON.stringify(input)
+      }),
+    setUserRole: (userId: string, input: SetRoleInput) =>
+      request<{ user: AdminUser }>(`/api/admin/users/${userId}/role`, {
+        method: "PATCH",
+        body: JSON.stringify(input)
+      }),
+    setUserActive: (userId: string, active: boolean) =>
+      request<{ user: AdminUser }>(`/api/admin/users/${userId}/active`, {
+        method: "PATCH",
+        body: JSON.stringify({ active })
+      }),
+    linkTutor: (input: TutorLinkInput) =>
+      request<{ link: TutorLink }>("/api/admin/tutor-links", {
+        method: "POST",
+        body: JSON.stringify(input)
+      }),
+    unlinkTutor: (input: TutorLinkInput) =>
+      request<{ ok: true }>("/api/admin/tutor-links", {
+        method: "DELETE",
+        body: JSON.stringify(input)
+      }),
+    listTutorLinks: () => request<{ links: TutorLinkFull[] }>("/api/admin/tutor-links/list")
+  }
+};
+
+export type TutorLinkFull = {
+  id: string;
+  createdAt: string;
+  tutor: { id: string; name: string; email: string };
+  student: { id: string; name: string; email: string };
+};
+
+export type AdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: Role;
+  active: boolean;
+  createdAt?: string;
+};
+
+export type TutorLink = {
+  id: string;
+  tutorId: string;
+  studentId: string;
+  createdAt: string;
 };
 
 export type DashboardResponse = Awaited<ReturnType<typeof import("@/lib/server/app-data").getDashboardData>>;
