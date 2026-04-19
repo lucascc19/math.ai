@@ -31,16 +31,18 @@ Sistema full-stack inicial para apoio a alunos com TDAH e TEA em matematica basi
 - usuario demo: `aluno@basematematica.dev`
 - senha demo: `demo12345`
 
-## Proximos passos
+## Como rodar localmente
 
-- trocar a autenticacao nativa por `Auth.js` ou `Clerk` quando o ambiente permitir instalar dependencias
-- criar CRUD administrativo completo para trilhas e licoes
-- ampliar analytics, relatorios e revisoes adaptativas
-
-## Rodando com banco real
+1. Instale as dependencias.
+2. Copie `.env.example` para `.env`.
+3. Suba o banco local com Docker.
+4. Gere o Prisma Client, rode as migrations e popule o banco.
+5. Inicie o ambiente de desenvolvimento.
 
 ```powershell
 pnpm install
+Copy-Item .env.example .env
+docker compose up -d
 pnpm prisma generate
 pnpm prisma migrate dev
 pnpm db:seed
@@ -51,3 +53,18 @@ pnpm dev
 
 - `DATABASE_URL`
 - `AUTH_SECRET`
+
+## Estrutura principal
+
+- `app/`: rotas, paginas e APIs no App Router
+- `components/`: interface reutilizavel e telas principais
+- `lib/`: dominio, schemas e servicos de backend
+- `prisma/`: schema, migrations e seed
+- `tests/`: testes unitarios e e2e
+
+## Proximos passos
+
+- finalizar o conteudo institucional definitivo da landing page
+- implementar autorizacao real por papel
+- criar CRUD administrativo completo para trilhas e licoes
+- ampliar analytics, relatorios e revisoes adaptativas
