@@ -21,7 +21,7 @@ export default async function LoginPage() {
             href="/"
           >
             <ArrowLeft className="h-4 w-4" />
-            Voltar para a landing page
+            Voltar
           </Link>
           <AuthForm
             mode="login"

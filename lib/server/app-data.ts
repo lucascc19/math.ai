@@ -193,7 +193,11 @@ export async function loginUser(input: LoginInput) {
   });
 
   if (!user || !verifyPassword(input.password, user.passwordHash)) {
-    throw new Error("E-mail ou senha invalidos.");
+    throw new Error("E-mail ou senha inválidos.");
+  }
+
+  if (user.active === false) {
+    throw new Error("Conta desativada. Entre em contato com a coordenação.");
   }
 
   return createAuthenticatedResponse(user);

@@ -7,10 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 enum Role {
   STUDENT
   TUTOR
   ADMIN
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
 }
 
 model User {
@@ -19,12 +25,28 @@ model User {
   email          String                 @unique
   passwordHash   String
   role           Role
+  active         Boolean                @default(true)
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
   accessibility  AccessibilityProfile?
   attempts       Attempt[]
   sessions       Session[]
   trackProgress  TrackProgress[]
+  tutorLinks     TutorStudent[]         @relation("TutorRelation")
+  studentLinks   TutorStudent[]         @relation("StudentRelation")
+}
+
+model TutorStudent {
+  id         String   @id @default(cuid())
+  tutorId    String
+  studentId  String
+  createdAt  DateTime @default(now())
+  tutor      User     @relation("TutorRelation", fields: [tutorId], references: [id], onDelete: Cascade)
+  student    User     @relation("StudentRelation", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorId, studentId])
+  @@index([tutorId])
+  @@index([studentId])
 }
 
 model AccessibilityProfile {
@@ -45,14 +67,15 @@ model SkillTrack {
   name          String
   description   String
   estimatedTime String
+  status        ContentStatus   @default(DRAFT)
   lessons       Lesson[]
   progress      TrackProgress[]
 }
 
 model Lesson {
-  id            String      @id @default(cuid())
+  id            String         @id @default(cuid())
   skillTrackId  String
-  skillTrack    SkillTrack  @relation(fields: [skillTrackId], references: [id], onDelete: Cascade)
+  skillTrack    SkillTrack     @relation(fields: [skillTrackId], references: [id], onDelete: Cascade)
   title         String
   prompt        String
   story         String
@@ -62,6 +85,7 @@ model Lesson {
   goal          String
   tip           String
   orderIndex    Int
+  status        ContentStatus  @default(DRAFT)
   attempts      Attempt[]
 }
 

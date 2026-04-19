@@ -84,8 +84,26 @@ async function main() {
 
   await initializeUserData(user.id);
 
-  console.log("Seed concluido com sucesso.");
-  console.log("Usuario demo: aluno@basematematica.dev / demo12345");
+  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@basematematica.dev";
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "admin12345";
+  const adminName = process.env.SEED_ADMIN_NAME ?? "Administrador";
+
+  const admin = await prismaDb.user.upsert({
+    where: { email: adminEmail },
+    update: { role: Role.ADMIN, active: true },
+    create: {
+      name: adminName,
+      email: adminEmail,
+      role: Role.ADMIN,
+      passwordHash: hashPassword(adminPassword)
+    }
+  });
+
+  await initializeUserData(admin.id);
+
+  console.log("Seed concluído com sucesso.");
+  console.log(`Aluno demo: ${DEMO_USER.email} / demo12345`);
+  console.log(`Admin: ${adminEmail} / ${adminPassword}`);
 }
 
 main()

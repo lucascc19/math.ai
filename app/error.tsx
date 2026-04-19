@@ -33,7 +33,7 @@ export default function AppError({
           <div className="flex flex-wrap gap-3">
             <Button onClick={reset}>Tentar novamente</Button>
             <Button asChild variant="ghost">
-              <Link href="/">Voltar para a landing page</Link>
+              <Link href="/">Voltar para a página inicial</Link>
             </Button>
           </div>
         </Card>

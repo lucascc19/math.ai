@@ -39,12 +39,13 @@ export function verifyPassword(password: string, passwordHash: string) {
 }
 
 export async function initializeUserData(userId: string) {
-  const tracks = await prisma.skillTrack.findMany({
+  const tracks = await prismaAuth.skillTrack.findMany({
+    where: { status: "PUBLISHED" },
     select: { id: true }
   });
 
   await Promise.all(
-    tracks.map((track) =>
+    tracks.map((track: { id: string }) =>
       prisma.trackProgress.upsert({
         where: {
           userId_skillTrackId: {
@@ -163,6 +164,11 @@ export async function requireCurrentUser() {
 
   if (!session) {
     throw new Error("AUTHENTICATION_REQUIRED");
+  }
+
+  if (session.user.active === false) {
+    await clearSessionCookie();
+    throw new Error("ACCOUNT_DEACTIVATED");
   }
 
   return session.user;
