@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth-form";
 import { tryGetCurrentSession } from "@/lib/server/auth";
@@ -11,28 +12,24 @@ export default async function RegisterPage() {
   }
 
   return (
-    <main className="pb-20">
+    <main className="flex min-h-screen flex-col">
       <div className="gradient-bar h-1" />
-      <section className="content-shell mx-auto flex w-full flex-col gap-8 px-4 py-8 md:px-6 xl:px-8">
-        <Link className="text-sm font-semibold text-primary-40 hover:underline" href="/">
-          Voltar para a landing page
-        </Link>
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(380px,0.78fr)]">
+      <div className="flex flex-1 items-center justify-center px-4 py-10 md:px-6">
+        <div className="flex w-full max-w-md flex-col gap-6">
+          <Link
+            className="focus-ring inline-flex w-fit items-center gap-2 text-sm font-semibold text-primary-40 hover:underline dark:text-primary-70"
+            href="/"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Voltar para a landing page
+          </Link>
           <AuthForm
             mode="register"
             title="Criar seu acesso"
-            description="Cadastre-se para entrar na plataforma, salvar progresso individual e personalizar a experiencia de aprendizagem."
+            description="Cadastre-se para entrar na plataforma, salvar progresso individual e personalizar a experiência de aprendizagem."
           />
-          <aside className="grid gap-4 rounded-[28px] border border-black/5 bg-primary-95 p-8 shadow-soft">
-            <h2 className="text-2xl font-bold">O que acontece depois do cadastro</h2>
-            <div className="grid gap-3 text-sm leading-7 text-neutral-10/75">
-              <p>Sua conta e criada com perfil de aluno.</p>
-              <p>As preferencias de acessibilidade passam a ser salvas por usuario.</p>
-              <p>Seu progresso deixa de depender do usuario demo da plataforma.</p>
-            </div>
-          </aside>
         </div>
-      </section>
+      </div>
     </main>
   );
 }

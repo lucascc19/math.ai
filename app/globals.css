@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #f5f5f7;
-  --foreground: #2d3436;
+  --background: #F5F5F7;
+  --foreground: #1A1C1D;
   --reading-size: 1rem;
   --reading-gap: 24px;
 }
@@ -16,7 +16,7 @@ html {
 body {
   background:
     radial-gradient(circle at top left, rgba(119, 149, 248, 0.14), transparent 24%),
-    linear-gradient(180deg, #ffffff 0%, #f5f5f7 52%, #ebf0ff 100%);
+    linear-gradient(180deg, #FFFFFF 0%, #F5F5F7 52%, #EBF0FF 100%);
   color: var(--foreground);
   font-size: var(--reading-size);
 }
@@ -46,8 +46,8 @@ body.focus-guiado .focus-surface {
 body.focus-contraste {
   background:
     radial-gradient(circle at top left, rgba(87, 116, 216, 0.18), transparent 22%),
-    linear-gradient(180deg, #ffffff 0%, #eef3ff 48%, #dde7ff 100%);
-  color: #1f2730;
+    linear-gradient(180deg, #FFFFFF 0%, #EBF0FF 48%, #D7E2FF 100%);
+  color: #1A1C1D;
 }
 
 body.focus-contraste .soft-card,

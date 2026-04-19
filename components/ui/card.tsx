@@ -7,5 +7,5 @@ export function Card({
   className?: string;
   children: React.ReactNode;
 }) {
-  return <section className={cn("soft-card p-6 md:p-8", className)}>{children}</section>;
+  return <section className={cn("h-fit soft-card p-6 md:p-8", className)}>{children}</section>;
 }
