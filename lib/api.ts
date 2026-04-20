@@ -100,6 +100,11 @@ export const api = {
         body: JSON.stringify(input)
       }),
     listTutorLinks: () => request<{ links: TutorLinkFull[] }>("/api/admin/tutor-links/list")
+  },
+  tutor: {
+    listStudents: () => request<{ students: AdminUser[] }>("/api/tutor/students"),
+    getStudent: (studentId: string) => request<TutorStudentProgress>(`/api/tutor/students/${studentId}`),
+    metrics: () => request<TutorMetrics>("/api/tutor/metrics")
   }
 };
 
@@ -108,6 +113,28 @@ export type TutorLinkFull = {
   createdAt: string;
   tutor: { id: string; name: string; email: string };
   student: { id: string; name: string; email: string };
+};
+
+export type TutorStudentProgress = {
+  studentId: string;
+  progress: Array<{
+    id: string;
+    skillTrackId: string;
+    lessonIndex: number;
+    correct: number;
+    attempts: number;
+    streak: number;
+    mastery: number;
+    skillTrack: { id: string; slug: string; name: string };
+  }>;
+  totals: { attempts: number; correct: number };
+};
+
+export type TutorMetrics = {
+  scope: "tutor" | "global";
+  studentsTracked: number;
+  attempts: number;
+  correct: number;
 };
 
 export type AdminUser = {

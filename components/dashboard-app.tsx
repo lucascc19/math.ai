@@ -16,6 +16,7 @@ import {
   Gauge,
   LayoutDashboard,
   LogOut,
+  Settings as SettingsIcon,
   ShieldCheck,
   Sparkles,
   Users
@@ -138,12 +139,30 @@ export function DashboardApp() {
           <div className="adaptive-stack grid">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <Badge variant="secondary">Painel do aluno</Badge>
-              <Button asChild variant="ghost">
-                <Link href="/">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Voltar para a landing
-                </Link>
-              </Button>
+              <div className="flex flex-wrap items-center gap-3">
+                {dashboard.user?.role === "ADMIN" && (
+                  <Button asChild variant="ghost">
+                    <Link href="/admin/usuarios">
+                      <SettingsIcon className="mr-2 h-4 w-4" />
+                      Painel admin
+                    </Link>
+                  </Button>
+                )}
+                {dashboard.user?.role === "TUTOR" && (
+                  <Button asChild variant="ghost">
+                    <Link href="/tutor/alunos">
+                      <Users className="mr-2 h-4 w-4" />
+                      Meus alunos
+                    </Link>
+                  </Button>
+                )}
+                <Button asChild variant="ghost">
+                  <Link href="/">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Voltar para a landing
+                  </Link>
+                </Button>
+              </div>
             </div>
             <div className="adaptive-stack grid">
               <h1 className="max-w-5xl text-4xl font-bold leading-[0.98] text-neutral-10 md:text-5xl 2xl:text-6xl">

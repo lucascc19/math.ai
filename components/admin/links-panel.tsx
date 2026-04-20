@@ -54,7 +54,7 @@ export function LinksPanel({ initialLinks, tutors, students }: Props) {
         <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
           <SelectField label="Tutor" value={tutorId} onChange={setTutorId} options={tutors} />
           <SelectField label="Aluno" value={studentId} onChange={setStudentId} options={students} />
-          <Button onClick={() => linkMutation.mutate()} disabled={!canLink}>
+          <Button className="h-fit" onClick={() => linkMutation.mutate()} disabled={!canLink}>
             <Link2 className="mr-2 h-4 w-4" />
             {linkMutation.isPending ? "Vinculando..." : "Vincular"}
           </Button>
@@ -108,7 +108,7 @@ export function LinksPanel({ initialLinks, tutors, students }: Props) {
                   onClick={() =>
                     unlinkMutation.mutate({ tutorId: link.tutor.id, studentId: link.student.id })
                   }
-                  className="focus-ring inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-10 hover:border-tertiary-30/40 hover:text-tertiary-30 disabled:opacity-50 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95 dark:hover:border-tertiary-70/50 dark:hover:text-tertiary-70"
+                  className="h-fit focus-ring inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-10 hover:border-tertiary-30/40 hover:text-tertiary-30 disabled:opacity-50 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95 dark:hover:border-tertiary-70/50 dark:hover:text-tertiary-70"
                 >
                   <Trash2 className="h-3 w-3" />
                   Desvincular
