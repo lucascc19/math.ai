@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { api } from "@/lib/api";
+import { getHomePathForRole } from "@/lib/role-home";
 import { loginSchema, type LoginInput } from "@/lib/schemas";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,8 +32,8 @@ export function AuthForm(props: AuthFormProps) {
 
   const mutation = useMutation({
     mutationFn: api.login,
-    onSuccess: () => {
-      router.push("/dashboard");
+    onSuccess: (response) => {
+      router.push(getHomePathForRole(response.user.role));
       router.refresh();
     }
   });
@@ -62,7 +63,7 @@ export function AuthForm(props: AuthFormProps) {
           {mutation.isPending ? "Entrando..." : "Entrar"}
         </Button>
         <p className="text-sm text-neutral-10/65">
-          {mutation.error ? mutation.error.message : "Use suas credenciais para acessar o dashboard."}
+          {mutation.error ? mutation.error.message : "Use suas credenciais para acessar a sua area."}
         </p>
       </form>
 

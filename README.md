@@ -53,6 +53,26 @@ pnpm dev
 
 - `DATABASE_URL`
 - `AUTH_SECRET`
+- `NEXT_PUBLIC_BASE_URL`
+- `MAIL_PROVIDER`
+- `MAIL_FROM_EMAIL`
+- `MAIL_FROM_NAME`
+- `RESEND_API_KEY`
+
+Se `MAIL_PROVIDER` nao estiver vazio, o app envia convites e links de recuperacao de senha por e-mail. O provider suportado agora e `resend`. Sem provider configurado, o conteudo do e-mail continua sendo registrado no console em desenvolvimento.
+
+### Testar envio local com Resend
+
+1. Preencha no `.env`:
+   - `MAIL_PROVIDER="resend"`
+   - `MAIL_FROM_EMAIL`
+   - `MAIL_FROM_NAME`
+   - `RESEND_API_KEY`
+2. Reinicie o `pnpm dev`.
+3. Rode `pnpm mail:test seu-email@dominio.com` para validar o envio direto.
+4. Depois teste pela UI:
+   - `/admin/convites` para convite
+   - `/esqueci-senha` para reset de senha
 
 ## Estrutura principal
 

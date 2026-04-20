@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { api, type InvitationPublic } from "@/lib/api";
+import { getHomePathForRole } from "@/lib/role-home";
 import { acceptInvitationSchema, type AcceptInvitationInput } from "@/lib/schemas";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,8 +29,8 @@ export function InvitationAcceptForm({ token, invitation }: { token: string; inv
   const mutation = useMutation({
     mutationFn: (values: Omit<AcceptInvitationInput, "token">) =>
       api.invitations.accept({ ...values, token }),
-    onSuccess: () => {
-      router.push("/dashboard");
+    onSuccess: (response) => {
+      router.push(getHomePathForRole(response.user.role));
       router.refresh();
     }
   });

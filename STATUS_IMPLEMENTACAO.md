@@ -1,239 +1,293 @@
 # Status da Plataforma
 
-Última atualização: 2026-04-20
+Ultima atualizacao: 2026-04-20
 
-## Visão geral
+## Visao geral
 
-Este documento resume o estado atual da plataforma `Projeto Base Matemática`, com foco em:
+Este documento resume o estado atual da plataforma `Projeto Base Matematica`, com foco em:
 
-- o que já foi implementado
-- o que está funcional, mas ainda simplificado
-- o que ainda precisa ser desenvolvido para a plataforma evoluir para produção
+- o que ja foi implementado
+- o que ja funciona, mas ainda esta simplificado
+- o que ainda falta para a plataforma evoluir para producao
 
 ---
 
-## 1. O que já foi implementado
+## 1. O que ja foi implementado
 
 ### 1.1 Base do projeto
 
 - Next.js 15 (App Router) + TypeScript + pnpm
-- Tailwind CSS com paleta completa (`primary`, `secondary`, `tertiary`, `neutral` em escalas T0–T100)
-- shadcn/ui (componentes enxutos, customizáveis)
-- TanStack React Query (mutations e cache)
-- Zustand (estado global cliente)
-- React Hook Form + Zod (forms e validação)
-- Prisma + PostgreSQL (Docker local, Supabase em produção)
-- Vitest + Playwright (testes unitários e E2E)
-- Estrutura compatível com deploy na Vercel
+- Tailwind CSS com paleta completa (`primary`, `secondary`, `tertiary`, `neutral`)
+- shadcn/ui
+- TanStack React Query
+- Zustand
+- React Hook Form + Zod
+- Prisma + PostgreSQL
+- Vitest + Playwright
+- Estrutura compativel com deploy na Vercel
 
-### 1.2 Interface pública e navegação
+### 1.2 Interface publica e navegacao
 
-- Landing page em `/` com apresentação do projeto, monitores, professor coordenador e Instagram
-- Header com links de seção e botões de login/cadastro
+- Landing page em `/`
+- Header com links de secao e CTA de login
 - Tela de login em `/login`
-- Tela de cadastro em `/cadastro`
-- Tela de recuperação de senha em `/esqueci-senha`
-- Tela de definição de nova senha em `/redefinir-senha?token=...`
-- Dashboard em `/dashboard` (protegido por sessão)
-- Área admin em `/admin/*` (protegida por papel ADMIN)
-- Área tutor em `/tutor/*` (protegida por papel TUTOR ou ADMIN)
-- Redirecionamentos automáticos (usuário logado não vê login/cadastro; não-logado não acessa rotas privadas)
+- Tela informativa em `/cadastro` explicando que o acesso e liberado por convite
+- Tela de recuperacao de senha em `/esqueci-senha`
+- Tela de redefinicao de senha em `/redefinir-senha?token=...`
+- Tela de aceite de convite em `/convite/[token]`
+- Area do aluno em `/aluno` protegida por sessao e papel `STUDENT`
+- `/dashboard` mantido apenas como rota de compatibilidade, redirecionando para a home correta da role
+- Area admin em `/admin/*` protegida por papel `ADMIN`
+- Area tutor em `/tutor/*` protegida por papel `TUTOR` ou `ADMIN`
+- Redirecionamentos automáticos para rotas privadas/publicas conforme sessao
 
-### 1.3 Design e experiência
+### 1.3 Design e experiencia
 
 - Fonte Lexend
-- Dark mode com alternância light/dark/system (componente segmentado)
+- Dark mode com alternancia light/dark/system
 - Script anti-FOUC no `app/layout.tsx`
-- Paleta Axioma Suave com contraste WCAG em dark mode (sem opacity modifiers em textos escuros)
 - Layouts responsivos para desktop, tablet e mobile
-- Animação `math-float` e elementos decorativos controlados pela preferência `reducedMotion`
+- Shell lateral padronizada para `ADMIN`, `TUTOR` e `STUDENT`
+- Sidebar recolhivel no desktop, com tooltips no modo compacto
+- Menu de conta na sidebar com nome, role e acao de logout
+- Botoes, cards e secoes principais padronizados com raio de 16px
 
-### 1.4 Autenticação e sessão
+### 1.4 Autenticacao e sessao
 
-- Hash de senha com `scrypt` + salt por usuário
-- Sessão com cookie `httpOnly`, `sameSite=lax`, `secure` em produção
-- Token opaco de 32 bytes; armazenado em banco por SHA-256
+- Hash de senha com `scrypt` + salt por usuario
+- Sessao com cookie `httpOnly`, `sameSite=lax`, `secure` em producao
+- Token opaco de 32 bytes, armazenado em banco por SHA-256
 - TTL de 30 dias, validado a cada request
-- Logout da sessão atual
-- **Logout em todos os dispositivos** (`/api/auth/logout-all`) com UI no painel do aluno
-- **Recuperação de senha**
-  - `POST /api/auth/password-reset/request` gera token único com TTL de 1h
-  - `POST /api/auth/password-reset/confirm` valida, troca senha e revoga todas as sessões
-  - tokens armazenados como hash SHA-256 + uso único (`usedAt`)
-  - link é logado no servidor (SMTP pendente)
-- **Rate limiting** (sliding window em memória)
-  - login: 5 tentativas/15min por IP
-  - cadastro: 3/hora por IP
-  - reset de senha: 3/hora (request) + 5/hora (confirm) por IP
+- Logout da sessao atual
+- Logout em todos os dispositivos (`/api/auth/logout-all`)
+- Recuperacao de senha:
+  - `POST /api/auth/password-reset/request` gera token unico com TTL de 1h
+  - `POST /api/auth/password-reset/confirm` valida token, troca senha e revoga sessoes
+  - tokens armazenados como hash SHA-256 + uso unico (`usedAt`)
+- Onboarding por convite:
+  - cadastro publico desativado
+  - `POST /api/invitations` cria convite com TTL de 3 dias
+  - `GET /api/invitations/resolve?token=...` resolve estado do convite
+  - `POST /api/invitations/accept` cria a conta apenas no aceite
+  - `POST /api/invitations/[id]/revoke` revoga convite pendente
+  - `POST /api/invitations/[id]/resend` gera novo token para reenvio
+  - `DELETE /api/invitations/[id]` exclui convite definitivamente
+  - `DELETE /api/invitations` remove convites que nao estao mais pendentes
+  - aceite abre sessao imediatamente apos criar a conta
+- Rate limiting em memoria:
+  - login: 5 tentativas / 15 min por IP
+  - reset de senha: 3 / hora (request) + 5 / hora (confirm) por IP
+  - convites: 10 / hora (create), 30 / hora (resolve), 5 / hora (accept)
 
 ### 1.5 RBAC (Role-Based Access Control)
 
-- Três papéis: `STUDENT`, `TUTOR`, `ADMIN`
-- Matriz de permissões definida em `lib/server/permissions.ts` com 22 actions
+- Tres papeis: `STUDENT`, `TUTOR`, `ADMIN`
+- Matriz de permissoes centralizada em `lib/server/permissions.ts`
 - `requireActor(action?)` no backend e `requirePageRole(...)` em Server Components
-- Scope rules enforced:
-  - TUTOR vê apenas alunos vinculados (tabela `TutorStudent`)
-  - TUTOR só edita rascunhos próprios; publicação/desativação é restrita ao ADMIN
-  - ADMIN vê tudo globalmente
-  - desativar um usuário (`active=false`) invalida todas as suas sessões
-- Proteções:
-  - `ForbiddenError` (403) e `NotFoundError` (404) tipados
-  - `ACCOUNT_DEACTIVATED` limpa cookie e encerra sessão
+- Scope rules:
+  - `TUTOR` ve apenas alunos vinculados
+  - `TUTOR` so edita rascunhos
+  - `ADMIN` tem visao global
+  - desativar usuario invalida todas as suas sessoes
+- Permissoes de convite:
+  - `ADMIN` pode convidar `ADMIN`, `TUTOR` e `STUDENT`
+  - `TUTOR` pode convidar apenas `STUDENT`
+  - `TUTOR` lista/revoga apenas os proprios convites
 
 ### 1.6 Acessibilidade
 
-- Ajuste de tamanho do texto (16–22 px)
-- Ajuste de espaçamento entre blocos (24–40 px)
-- Toggle de leitura guiada
-- Modo minimalista
-- Redução de animações extras
-- Modo de foco: `calmo`, `guiado`, `contraste`
-- Persistência por usuário (`AccessibilityProfile`)
+- Ajuste de tamanho do texto
+- Ajuste de espacamento entre blocos
+- Modos de foco `calmo`, `guiado`, `contraste`
+- Botao flutuante no canto inferior direito abrindo dialog de acessibilidade
+- Persistencia por usuario em `AccessibilityProfile`
 
-### 1.7 Sistema pedagógico
+### 1.7 Sistema pedagogico
 
-- Trilhas de Adição, Subtração, Multiplicação e Divisão (via seed)
-- Lições com enunciado, história, explicação, resposta, nível, meta, dica e passos guiados
-- Progressão por acertos, tentativas, streak, domínio
-- Submissão de resposta com feedback contextual
-- Lista de trilhas e lições filtradas por `status = PUBLISHED` no dashboard (rascunhos invisíveis para alunos/tutores)
+- Trilhas iniciais de Adicao, Subtracao, Multiplicacao e Divisao
+- Licoes com enunciado, historia, explicacao, resposta, nivel, meta, dica e passos guiados
+- Progressao por acertos, tentativas, streak e dominio
+- Submissao de resposta com feedback contextual
+- Area do aluno filtrando apenas conteudo publicado
 
-### 1.8 CRUD de conteúdo (admin)
+### 1.8 CRUD de conteudo (admin)
 
-- Página `/admin/conteudo` lista todas as trilhas com status (rascunho/publicado) e contador de lições
-- Criar nova trilha (começa sempre como rascunho)
-- Editar metadados da trilha (slug, nome, descrição, tempo estimado)
-- Publicar/despublicar trilha
-- Excluir trilha (cascade deleta lições)
-- Página `/admin/conteudo/[trackId]` para editar trilha e suas lições
-- Criar lições (rascunho) com todos os campos
-- Editar lições inline (formulário expansível)
-- Publicar/despublicar lição
-- Excluir lição
-- **Reordenar lições** via setinhas (persiste `orderIndex` em transação)
-- Rotas REST espelham o fluxo:
-  - `GET/POST /api/admin/content/tracks`
-  - `GET/PATCH/DELETE /api/admin/content/tracks/[trackId]`
-  - `POST /api/admin/content/tracks/[trackId]/publish` (com `{ publish: boolean }`)
-  - `POST /api/admin/content/tracks/[trackId]/reorder`
-  - `POST /api/admin/content/lessons`
-  - `PATCH/DELETE /api/admin/content/lessons/[lessonId]`
-  - `POST /api/admin/content/lessons/[lessonId]/publish`
+- `/admin/conteudo` lista trilhas com status e contador de licoes
+- Criacao e edicao de trilhas
+- Publicacao/despublicacao
+- Exclusao de trilha e licao
+- Reordenacao de licoes
+- Rotas REST para tracks e lessons no namespace `/api/admin/content/*`
 
 ### 1.9 Painel administrativo
 
-- Guard de papel ADMIN no layout `/admin`
-- Navegação interna: Usuários, Vínculos, Conteúdo
-- `/admin/usuarios`: lista com filtros por papel e status, criar tutor, alterar papel, ativar/desativar (com revogação de sessões)
-- `/admin/vinculos`: associar tutor a aluno, listar vínculos, desvincular
-- `/admin/conteudo`: já descrito em 1.8
+- Guard de papel `ADMIN` no layout `/admin`
+- Home operacional em `/admin` com visao geral
+- Navegacao interna: Usuários, Convites, Vínculos, Conteudo
+- `/admin/usuarios`:
+  - lista com filtros por papel e status
+  - alterar papel
+  - ativar/desativar conta
+  - formulario rapido de convite
+- `/admin/convites`:
+  - criar convite para `ADMIN`, `TUTOR` e `STUDENT`
+  - selecionar tutor opcional em convite de aluno
+  - listar convites
+  - filtrar por status e papel
+  - copiar link gerado
+  - reenviar convite com novo link
+  - revogar convite pendente
+  - excluir convite definitivamente
+  - limpar convites que nao estao mais pendentes
+- `/admin/vinculos`: associar tutor a aluno, listar vinculos, desvincular
 
 ### 1.10 Painel do tutor
 
-- Guard de papel TUTOR ou ADMIN em `/tutor`
-- `/tutor/alunos`: lista alunos vinculados ao tutor atual (ADMIN vê todos via mesmo endpoint)
-- `/tutor/alunos/[studentId]`: perfil do aluno com totais, precisão e progresso por trilha
-- Métricas reais agregadas a partir de `Attempt` e `TrackProgress`
+- Guard de papel `TUTOR` ou `ADMIN` em `/tutor`
+- Home operacional em `/tutor` com visao geral do papel
+- `/tutor/alunos`: lista de alunos vinculados
+- `/tutor/alunos/[studentId]`: perfil do aluno com totais, precisao e progresso por trilha
+- `/tutor/convites`:
+  - criar convite para aluno
+  - vinculo tutor-aluno opcional no convite
+  - listar apenas convites emitidos pelo tutor
+  - reenviar convite com novo link
+  - revogar convite pendente
+  - excluir convite definitivamente
+  - limpar convites que nao estao mais pendentes
 
-### 1.11 Dashboard role-aware
+### 1.11 Area do aluno
 
-- Cabeçalho com botão contextual ("Painel admin" para ADMIN, "Meus alunos" para TUTOR)
-- Painéis extras renderizados no rodapé do dashboard quando o usuário tem papel elevado:
-  - **Tutor panel**: alunos vinculados, tentativas totais, precisão, alunos em risco (< 3 tentativas) + CTA para `/tutor/alunos`
-  - **Admin panel**: usuários ativos/totais, tutores, alunos, vínculos, contagem de trilhas e lições publicadas vs rascunho + CTA para `/admin/usuarios`
-- Todos os números vêm de `getAdminSnapshot()` e `getTutorSnapshot(tutorId)` em `lib/server/app-data.ts`
+- Home principal do aluno em `/aluno`
+- Mesmo layout lateral de `ADMIN` e `TUTOR`, com conteudo especifico da role
+- Modulos atuais:
+  - resumo com tentativas, precisao geral e trilhas ativas
+  - secao "Trilhas" para continuar estudos
+  - secao "Seu progresso atual"
+  - secao "Ritmo semanal"
 
 ### 1.12 Backend
 
 - API Routes no App Router
-- Validação com Zod em todos os endpoints que recebem body
-- Helper centralizado `handleError` mapeia `ForbiddenError`, `NotFoundError`, `AUTHENTICATION_REQUIRED`, `ACCOUNT_DEACTIVATED` para status HTTP
+- Validacao com Zod em endpoints com body
+- `handleError` centralizado para auth, RBAC e erros de convite
 - Endpoints funcionais:
-  - auth: login, register, logout, logout-all, password-reset (request/confirm)
+  - auth: login, logout, logout-all, password-reset
+  - invitations: create, list, resolve, accept, revoke, resend, delete, cleanup
   - session: answer, accessibility, dashboard
-  - admin: users, tutors, user role/active, tutor-links, content (tracks/lessons)
+  - admin: users, user role/active, tutor-links, content
   - tutor: students list, student detail, metrics
 
 ### 1.13 Banco de dados
 
-- Schema Prisma com modelos: `User`, `Session`, `AccessibilityProfile`, `SkillTrack`, `Lesson`, `TrackProgress`, `Attempt`, `TutorStudent`, `PasswordResetToken`
-- Enums: `Role` (STUDENT/TUTOR/ADMIN), `ContentStatus` (DRAFT/PUBLISHED)
+- Schema Prisma com modelos:
+  - `User`
+  - `Session`
+  - `Invitation`
+  - `AccessibilityProfile`
+  - `SkillTrack`
+  - `Lesson`
+  - `TrackProgress`
+  - `Attempt`
+  - `TutorStudent`
+  - `PasswordResetToken`
+- Enums:
+  - `Role` (`STUDENT`, `TUTOR`, `ADMIN`)
+  - `ContentStatus` (`DRAFT`, `PUBLISHED`)
 - Migrations aplicadas:
-  - initial
-  - add-rbac-scope (ativo, role, tutor-student, content status)
-  - add-password-reset-token
-- PostgreSQL local via Docker em dev; Supabase preparado para prod
+  - `initial`
+  - `add-rbac-scope`
+  - `add-password-reset-token`
+  - `add-invitations`
 
 ### 1.14 Seed e dados iniciais
 
-- Trilhas e lições iniciais (publicadas)
-- Usuário demo aluno: `aluno@basematematica.dev` / `demo12345`
-- Usuário admin seedável via env vars (ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME)
-- `AccessibilityProfile` com defaults
-- `TrackProgress` inicial por usuário
+- Trilhas e licoes iniciais
+- Usuario demo aluno: `aluno@basematematica.dev` / `demo12345`
+- Usuario admin seedavel via env vars
+- `AccessibilityProfile` default
+- `TrackProgress` inicial por usuario
 
-### 1.15 Deploy e configuração
+### 1.15 Deploy e configuracao
 
-- `DEPLOY.md` com instruções para setup local (Docker) e produção (Supabase + Vercel)
-- `.env.example` com variáveis obrigatórias
+- `DEPLOY.md` documentado
+- `.env.example` com variaveis obrigatorias
 - `next.config.ts` com `typedRoutes: true`
+- `playwright.config.ts` configurado para rodar E2E locais
 
-### 1.16 Testes e validação
+### 1.16 Testes e validacao
 
-- Testes unitários para regras de progresso, schemas e currículo
-- E2E inicial: landing → login → responder atividade
-- Build `next build` validado
+- Testes unitarios para progresso, schemas e convites
+- E2E cobrindo:
+  - landing -> login -> rota correta da role
+  - admin cria convite -> usuario aceita -> login
+  - convite revogado na interface
+  - convite expirado na interface
+- Typecheck validado durante a implementacao
 
 ---
 
-## 2. O que já funciona, mas ainda está simplificado
+## 2. O que ja funciona, mas ainda esta simplificado
 
-### 2.1 Recuperação de senha
+### 2.1 Recuperacao de senha
 
-- Funciona ponta a ponta no backend (token único, TTL, revogação de sessões)
-- Formulários UI prontos (`/esqueci-senha` e `/redefinir-senha`)
-- **Pendente**: integração com serviço de e-mail (SMTP ou provider transacional — Resend, SES, SendGrid). Hoje o link aparece no console do servidor
+- Fluxo funcional ponta a ponta no backend
+- Formularios UI prontos
+- Envio transacional de e-mail pausado por decisao de produto
+- Enquanto isso, o link de redefinicao segue disponivel apenas em ambiente local/log tecnico
 
-### 2.2 Rate limiting
+### 2.2 Convites
 
-- Funciona em uma única instância (em memória)
-- **Pendente** para escalar: mover para Redis/Upstash ao ter múltiplas instâncias/edge runtime
+- Fluxo de convite funcional ponta a ponta
+- Admin e tutor conseguem gerar links e o usuario aceita via `/convite/[token]`
+- Fluxo operacional atual: admin ou tutor copia o link gerado e envia manualmente para a pessoa convidada
+- Reenvio de convite implementado com emissao de novo token/link
+- Revogacao e exclusao definitiva disponiveis na interface
+- Limpeza operacional implementada para remover convites que nao estao mais pendentes
+- Pendente:
+  - envio real por e-mail (pausado por enquanto)
 
-### 2.3 Revisão adaptativa
+### 2.3 Rate limiting
 
-- Progressão linear por trilha com streak e domínio
-- **Ainda não há**:
-  - fila de revisão por erro recorrente
-  - priorização por tempo sem praticar
-  - recomendação personalizada mais sofisticada (SRS, intervalos, etc)
+- Funciona em uma unica instancia (em memoria)
+- Pendente para escala: mover para Redis/Upstash
 
-### 2.4 Admin — permissões finas
+### 2.4 Revisao adaptativa
+
+- Progressao linear com streak e dominio
+- Ainda nao ha:
+  - fila de revisao por erro recorrente
+  - priorizacao por tempo sem praticar
+  - recomendacao personalizada mais sofisticada
+
+### 2.5 Admin - permissoes finas
 
 - Admin tem acesso global
-- Tutor pode criar rascunhos, mas **a UI de CRUD de conteúdo hoje está restrita à área /admin**. Expor para TUTOR em uma área dedicada (`/tutor/conteudo`) é um passo futuro
+- Tutor pode convidar aluno
+- Tutor ainda nao tem CRUD de conteudo dedicado
 
-### 2.5 Métricas de engajamento no dashboard
+### 2.6 Metricas de engajamento na area do aluno
 
-- Gráfico "Ritmo semanal" com dados estáticos (`chartData` fixo)
-- **Pendente**: alimentar com dados reais de `Attempt` agregados por dia
+- Grafico "Ritmo semanal" ainda usa dados estaticos
+- Pendente alimentar com dados reais de `Attempt`
 
-### 2.6 Conteúdo institucional da landing page
+### 2.7 Conteudo institucional da landing page
 
-- Estrutura e seções prontas
-- **Pendente**:
-  - revisão final do texto institucional
-  - links sociais reais definitivos (Instagram ok; LinkedIn e outros pendentes de confirmação)
-  - possível integração com agenda/notícias do projeto
+- Estrutura pronta
+- Pendente:
+  - revisao final do texto institucional
+  - links sociais definitivos
+  - possivel integracao com agenda/noticias
 
-### 2.7 Testes
+### 2.8 Testes
 
-- Base criada, mas cobertura ainda baixa.
-- **Faltam testes para**:
-  - fluxo completo de reset de senha
-  - rate limiting (cenário HTTP real)
-  - CRUD de conteúdo (criar, publicar, reordenar, deletar)
-  - RBAC e scope rules em mais combinações
-  - painel admin e tutor (E2E)
+- Base de testes melhorou, mas a cobertura ainda nao e alta
+- Ainda faltam testes para:
+  - reset de senha ponta a ponta
+  - rate limiting HTTP real
+  - CRUD de conteudo
+  - combinacoes extras de RBAC
+  - cenarios adicionais de convite (`used`, `ADMIN`, `TUTOR`, sem convite)
   - acessibilidade ponta a ponta
 
 ---
@@ -242,152 +296,146 @@ Este documento resume o estado atual da plataforma `Projeto Base Matemática`, c
 
 ### 3.1 Envio transacional de e-mail
 
-Prioridade alta. Necessário para:
+Status atual: pausado.
 
-- enviar o link de recuperação (já gerado no backend)
-- confirmação de conta
-- notificações opcionais para tutores e alunos
+Necessario no futuro para:
 
-Opções: Resend, SendGrid, SES, Mailgun. Exige variáveis de ambiente e um adapter em `lib/server/mailer.ts`.
+- enviar o link de recuperacao de senha
+- enviar convites de acesso
+- suportar futuro reenvio de convite
+- notificacoes opcionais para tutores e alunos
 
-### 3.2 Rate limiting distribuído
+Decisao atual:
 
-- Upstash Redis (ou equivalente) para substituir o store em memória quando houver múltiplas instâncias ou deploy em edge
+- convites seguem com envio manual do link por admin/tutor
+- integracao transacional fica fora do caminho critico por enquanto
 
-### 3.3 Confirmação de e-mail
+Opcoes futuras: Resend, SendGrid, SES, Mailgun. Exige variaveis de ambiente e um adapter em `lib/server/mailer.ts`.
 
-- Novo token (`EmailVerificationToken`) com fluxo similar ao reset
-- Estado `emailVerifiedAt` no `User`
-- Bloquear certas ações até verificação (opcional)
+### 3.2 Rate limiting distribuido
+
+- Upstash Redis (ou equivalente)
+
+### 3.3 Confirmacao de e-mail
+
+- `EmailVerificationToken`
+- `emailVerifiedAt` em `User`
+- bloqueio opcional de certas acoes ate verificacao
 
 ### 3.4 Painel do tutor expandido
 
-Hoje o tutor vê lista de alunos e detalhe por aluno. A evoluir:
+- ranking de dificuldades do grupo
+- historico de sessoes por aluno
+- anotacoes/comentarios
+- comparacao com media da turma
 
-- ranking de habilidades com mais dificuldade no seu grupo
-- histórico de sessões por aluno
-- comentários/anotações por aluno (precisa de nova tabela)
-- comparação com média da turma
+### 3.5 CRUD de conteudo para tutor
 
-### 3.5 CRUD de conteúdo para tutor
+- area `/tutor/conteudo`
+- tutores criando rascunhos em area propria
+- admin continua exclusivo em publicar/despublicar/deletar
 
-- Área `/tutor/conteudo` para tutores criarem rascunhos
-- UI reutiliza `ContentPanel`/`TrackDetailPanel` com variante read-only em campos sensíveis
-- Admin continua exclusivo em publicar/despublicar/deletar
+### 3.6 Revisao adaptativa avancada
 
-### 3.6 Revisão adaptativa avançada
-
-- Spaced repetition (SM-2, FSRS ou similar)
-- Revisão automática de erros recentes
-- Sugestão da próxima lição baseada em performance e tempo ocioso
-- Sessões dinâmicas (mix de trilhas)
+- spaced repetition
+- revisao automatica de erros recentes
+- sugestao da proxima licao baseada em desempenho e ociosidade
 
 ### 3.7 Observabilidade
 
-- Logs estruturados (pino, winston ou equivalente)
-- Sentry ou similar para erro em produção
-- Métricas de uso (latência, throughput, erros por rota)
-- Dashboard de saúde do serviço
+- logs estruturados
+- Sentry ou similar
+- metricas de uso e erro por rota
 
-### 3.8 Gamificação leve
+### 3.8 Melhorias de produto
 
-- Metas semanais
-- Selos/conquistas
-- Barra de consistência (streak semanal)
-- Celebrações visuais discretas (já existe feedback por resposta)
+- historico navegavel de sessoes
+- relatorios exportaveis (CSV/PDF)
+- notificacoes e lembretes
+- modo offline (PWA)
 
-### 3.9 Melhorias de produto
+### 3.9 Infraestrutura de producao
 
-- Histórico navegável de sessões (aluno)
-- Relatórios exportáveis (CSV/PDF) para tutor e admin
-- Notificações/lembretes (web push ou e-mail)
-- Modo de estudo offline (PWA)
+- deploy final na Vercel
+- variaveis separadas por ambiente
+- pipeline CI/CD no GitHub
+- migrations automatizadas no deploy
 
-### 3.10 Infraestrutura de produção
+### 3.10 Evolucao futura da autenticacao
 
-- Deploy final na Vercel
-- Banco gerenciado (Supabase já preparado)
-- Variáveis de ambiente separadas por ambiente (preview/prod)
-- Pipeline CI/CD no GitHub (lint + tests + build)
-- Migrations automáticas em deploy (ou manual via `prisma migrate deploy`)
+Avaliar migracao para:
 
-### 3.11 Cobertura de testes
+- Auth.js
+- Clerk
 
-- Testes de integração para RBAC e scope
-- E2E para admin e tutor
-- Testes para CRUD de conteúdo
-- Testes para fluxo completo de reset de senha
-- Testes de regressão de acessibilidade
+Ganhos potenciais:
 
-### 3.12 Evolução futura da autenticação
-
-Avaliar migração para:
-
-- Auth.js (open source, integra com providers externos)
-- Clerk (gerenciado, fluxos prontos)
-
-Ganhos potenciais: login social, MFA, passkeys, fluxos de convite.
+- login social
+- MFA
+- passkeys
+- fluxos gerenciados de onboarding
 
 ---
 
 ## 4. Prioridade recomendada
 
-Ordem sugerida para evolução:
+Ordem sugerida de evolucao agora:
 
-1. **Envio transacional de e-mail** (destrava reset de senha para uso real)
-2. **Logs estruturados + Sentry** (observabilidade mínima antes de abrir para usuários)
-3. **Pipeline CI/CD** (lint + tests + build + deploy preview)
-4. **Cobertura de testes** (RBAC, CRUD, E2E completo)
-5. **CRUD de conteúdo para tutor** (descentraliza criação)
-6. **Revisão adaptativa avançada** (SRS)
-7. **Confirmação de e-mail e rate limit distribuído** (quando abrir para público)
-8. **Gamificação e relatórios**
+1. Logs estruturados + Sentry
+2. Pipeline CI/CD
+3. Cobertura de testes mais profunda
+4. CRUD de conteudo para tutor
+5. Revisao adaptativa avancada
+6. Rate limiting distribuido
+7. Confirmacao de e-mail
+8. Retomar envio transacional de e-mail quando houver decisao de dominio/remetente
 
 ---
 
 ## 5. Resumo executivo
 
-### Já pronto
+### Ja pronto
 
-- Base full-stack moderna (Next.js 15, Prisma, Tailwind, React Query)
-- Landing institucional enxuta com dark mode
-- Autenticação real com sessão persistida (scrypt + cookies httpOnly)
-- **Reset de senha** funcional no backend (SMTP pendente)
-- **Logout em todos os dispositivos**
-- **Rate limiting** em memória nos endpoints de auth
-- **RBAC completo** com scope rules (STUDENT/TUTOR/ADMIN)
-- Dashboard role-aware com snapshots reais de admin e tutor
-- **CRUD de conteúdo** (admin): trilhas e lições, publicação, reorder
-- Painel admin (usuários, vínculos, conteúdo)
-- Painel tutor (lista e detalhe de alunos)
-- Acessibilidade configurável por usuário
-- Trilhas pedagógicas iniciais (via seed)
-- Banco modelado, migrations aplicadas
-- `DEPLOY.md` documentado (Docker local, Supabase prod)
-- Testes base (unitários + E2E inicial)
+- Base full-stack moderna
+- Landing institucional com dark mode
+- Autenticacao real com sessao persistida
+- Reset de senha funcional no backend
+- Logout em todos os dispositivos
+- RBAC completo com scope rules
+- Redirecionamento por role para `/admin`, `/tutor` e `/aluno`
+- Shell lateral padronizada com sidebar recolhivel e logout por menu de conta
+- Area do aluno em `/aluno`
+- CRUD de conteudo (admin)
+- Painel admin de usuarios, vinculos, conteudo e convites
+- Painel tutor de alunos e convites
+- Onboarding por convite funcional ponta a ponta
+- Convites com copia manual de link, reenvio, revogacao, exclusao e limpeza
+- Cadastro publico desativado
+- Banco modelado com `Invitation`
+- Testes unitarios e E2E cobrindo fluxo principal de convite
 
-### Ainda falta para produção plena
+### Ainda falta para producao plena
 
-- Envio transacional de e-mail (destrava reset real)
-- Rate limiting distribuído para múltiplas instâncias
-- Observabilidade (logs, Sentry, métricas)
-- CI/CD no GitHub
-- Cobertura de testes mais profunda (RBAC, CRUD, E2E)
-- Revisão adaptativa avançada
-- Gamificação e relatórios
-- CRUD de conteúdo para tutor (hoje só admin)
+- envio transacional de e-mail (pausado)
+- rate limiting distribuido
+- observabilidade
+- CI/CD
+- cobertura de testes mais profunda
+- revisao adaptativa avancada
+- CRUD de conteudo para tutor
 
 ---
 
-## 6. Próximo passo recomendado
+## 6. Proximo passo recomendado
 
-Com Fases A (dashboard role-aware), B (CRUD de conteúdo) e C (hardening: rate limit, reset senha, logout all) concluídas, o próximo passo de maior impacto é:
+Como o envio transacional de e-mail foi pausado por enquanto, o proximo passo recomendado passa a ser:
 
-**integrar envio transacional de e-mail** (Resend ou similar) para fechar o ciclo de recuperação de senha — hoje o link só aparece no console.
+**fortalecer observabilidade e validacao automatizada** do fluxo de autenticacao, convites e painel administrativo.
 
-Em paralelo:
+Na sequencia:
 
-- adicionar logs estruturados + Sentry
-- configurar pipeline CI/CD básico no GitHub
+- ampliar cobertura de testes
+- preparar pipeline CI/CD
+- retomar e-mail transacional apenas quando houver decisao de dominio/remetente
 
-Esses três destravam a plataforma para começar a receber usuários reais fora do ambiente de desenvolvimento.
+Esse caminho consolida o que ja esta pronto em convites e reduz risco operacional antes dos proximos blocos de produto.

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { passwordResetRequestSchema } from "@/lib/schemas";
-import { buildResetUrl, requestPasswordReset } from "@/lib/server/password-reset";
+import { buildResetPasswordUrl } from "@/lib/server/app-url";
+import { sendPasswordResetEmail } from "@/lib/server/mailer";
+import { requestPasswordReset } from "@/lib/server/password-reset";
 import { checkRateLimit, rateLimitResponse } from "@/lib/server/rate-limit";
 
 export async function POST(request: NextRequest) {
@@ -17,10 +19,13 @@ export async function POST(request: NextRequest) {
   try {
     const result = await requestPasswordReset(parsed.data.email);
 
-    if (result.token) {
-      const origin = request.nextUrl.origin;
-      const resetUrl = buildResetUrl(origin, result.token);
-      console.log(`[password-reset] Link gerado para ${parsed.data.email}: ${resetUrl}`);
+    if (result.token && result.expiresAt) {
+      const resetUrl = buildResetPasswordUrl(result.token, request);
+      await sendPasswordResetEmail({
+        email: parsed.data.email,
+        resetUrl,
+        expiresAt: result.expiresAt
+      });
     }
 
     return NextResponse.json({ ok: true });

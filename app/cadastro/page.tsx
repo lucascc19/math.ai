@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Mail } from "lucide-react";
 import { redirect } from "next/navigation";
 import { tryGetCurrentSession } from "@/lib/server/auth";
+import { getHomePathForRole } from "@/lib/role-home";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
@@ -9,7 +10,7 @@ export default async function CadastroPage() {
   const session = await tryGetCurrentSession();
 
   if (session) {
-    redirect("/dashboard");
+    redirect(getHomePathForRole(session.user.role));
   }
 
   return (

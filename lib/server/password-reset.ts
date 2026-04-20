@@ -69,7 +69,3 @@ export async function confirmPasswordReset(token: string, newPassword: string) {
 
   return { ok: true };
 }
-
-export function buildResetUrl(baseUrl: string, token: string) {
-  return `${baseUrl.replace(/\/$/, "")}/redefinir-senha?token=${encodeURIComponent(token)}`;
-}

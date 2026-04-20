@@ -10,9 +10,6 @@ export const loginSchema = z.object({
 export const settingsSchema = z.object({
   fontSize: z.number().min(16).max(22),
   spacing: z.number().min(24).max(40),
-  guidance: z.boolean(),
-  minimal: z.boolean(),
-  reducedMotion: z.boolean(),
   focusMode: z.enum(["calmo", "guiado", "contraste"])
 });
 

@@ -31,7 +31,10 @@ export type Action =
   | "invite.create.tutor"
   | "invite.create.student"
   | "invite.list"
-  | "invite.revoke";
+  | "invite.revoke"
+  | "invite.resend"
+  | "invite.cleanup"
+  | "invite.delete";
 
 const rolePermissions: Record<Role, ReadonlySet<Action>> = {
   STUDENT: new Set<Action>(["lesson.attempt", "profile.edit.self"]),
@@ -47,7 +50,10 @@ const rolePermissions: Record<Role, ReadonlySet<Action>> = {
     "track.draft.edit",
     "invite.create.student",
     "invite.list",
-    "invite.revoke"
+    "invite.revoke",
+    "invite.resend",
+    "invite.cleanup",
+    "invite.delete"
   ]),
   ADMIN: new Set<Action>([
     "lesson.attempt",
@@ -76,7 +82,10 @@ const rolePermissions: Record<Role, ReadonlySet<Action>> = {
     "invite.create.tutor",
     "invite.create.student",
     "invite.list",
-    "invite.revoke"
+    "invite.revoke",
+    "invite.resend",
+    "invite.cleanup",
+    "invite.delete"
   ])
 };
 

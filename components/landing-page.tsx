@@ -47,7 +47,7 @@ export function LandingPage() {
                   <Image alt="Logo do projeto Base Matemática" src="/logo-bg-transparent.svg" width={34} height={34} priority />
                 </div>
                 <div className="grid gap-0.5">
-                  <span className="text-sm font-bold uppercase tracking-[0.18em] text-primary-40">Projeto Base Matemática</span>
+                  <span className="text-sm font-bold uppercase  text-primary-40">Projeto Base Matemática</span>
                   <span className="text-xs text-neutral-10/60">Matemática, acolhimento e acompanhamento</span>
                 </div>
               </Link>

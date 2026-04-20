@@ -59,7 +59,7 @@ export default async function TutorStudentDetailPage({ params }: PageProps) {
         <MetricTile title="Precisão" value={`${accuracy}%`} icon={Flame} />
       </div>
 
-      <Card className="grid gap-4 rounded-[28px] border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
+      <Card className="grid gap-4 rounded-2xl border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
         <div className="flex items-center gap-2">
           <BookOpen className="h-5 w-5 text-primary-40 dark:text-primary-70" />
           <h2 className="text-lg font-bold text-neutral-10 dark:text-neutral-95">Trilhas</h2>
@@ -76,7 +76,7 @@ export default async function TutorStudentDetailPage({ params }: PageProps) {
               return (
                 <div
                   key={track.id}
-                  className="grid gap-3 rounded-[20px] border border-black/5 bg-white/70 p-5 dark:border-white/10 dark:bg-neutral-20/50"
+                  className="grid gap-3 rounded-2xl border border-black/5 bg-white/70 p-5 dark:border-white/10 dark:bg-neutral-20/50"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="grid gap-0.5">
@@ -116,7 +116,7 @@ function MetricTile({
   icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <Card className="grid gap-3 rounded-[24px] border border-black/5 bg-white/85 p-5 shadow-soft dark:border-white/10 dark:bg-neutral-20/70">
+    <Card className="grid gap-3 rounded-2xl border border-black/5 bg-white/85 p-5 shadow-soft dark:border-white/10 dark:bg-neutral-20/70">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-bold uppercase tracking-[0.14em] text-primary-40 dark:text-primary-70">
           {title}

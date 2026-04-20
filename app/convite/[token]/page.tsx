@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { getInvitationByToken } from "@/lib/server/invitations";
 import { InvitationAcceptForm } from "@/components/invitation-accept-form";
 import { Card } from "@/components/ui/card";
@@ -18,18 +17,16 @@ export default async function ConvitePage({ params }: PageProps) {
       <div className="gradient-bar h-1" />
       <div className="flex flex-1 items-center justify-center px-4 py-10 md:px-6">
         <div className="flex w-full max-w-md flex-col gap-6">
-          <Link
-            className="focus-ring inline-flex w-fit items-center gap-2 text-sm font-semibold text-primary-40 hover:underline dark:text-primary-70"
-            href="/login"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Ir para o login
-          </Link>
-
           {!invitation && <InvalidInvitationCard reason="not-found" />}
-          {invitation?.status === "used" && <InvalidInvitationCard reason="used" />}
-          {invitation?.status === "revoked" && <InvalidInvitationCard reason="revoked" />}
-          {invitation?.status === "expired" && <InvalidInvitationCard reason="expired" />}
+          {invitation?.status === "used" && (
+            <InvalidInvitationCard reason="used" />
+          )}
+          {invitation?.status === "revoked" && (
+            <InvalidInvitationCard reason="revoked" />
+          )}
+          {invitation?.status === "expired" && (
+            <InvalidInvitationCard reason="expired" />
+          )}
           {invitation?.status === "pending" && (
             <InvitationAcceptForm token={token} invitation={invitation} />
           )}
@@ -39,24 +36,28 @@ export default async function ConvitePage({ params }: PageProps) {
   );
 }
 
-function InvalidInvitationCard({ reason }: { reason: "not-found" | "used" | "revoked" | "expired" }) {
+function InvalidInvitationCard({
+  reason,
+}: {
+  reason: "not-found" | "used" | "revoked" | "expired";
+}) {
   const messages: Record<typeof reason, { title: string; body: string }> = {
     "not-found": {
       title: "Convite não encontrado",
-      body: "Este link de convite não é válido. Verifique se você copiou o endereço completo."
+      body: "Este link de convite não é válido. Verifique se você copiou o endereço completo.",
     },
     used: {
       title: "Convite já utilizado",
-      body: "Este convite já foi aceito e a conta foi criada. Acesse a plataforma pelo login."
+      body: "Este convite já foi aceito e a conta foi criada. Acesse a plataforma pelo login.",
     },
     revoked: {
       title: "Convite revogado",
-      body: "Este convite foi cancelado. Entre em contato com quem te convidou para receber um novo link."
+      body: "Este convite foi cancelado. Entre em contato com quem te convidou para receber um novo link.",
     },
     expired: {
       title: "Convite expirado",
-      body: "Este convite expirou após 3 dias. Entre em contato com quem te convidou para receber um novo link."
-    }
+      body: "Este convite expirou após 3 dias. Entre em contato com quem te convidou para receber um novo link.",
+    },
   };
 
   const { title, body } = messages[reason];

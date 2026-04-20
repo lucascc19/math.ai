@@ -41,7 +41,6 @@ export function LinksPanel({ initialLinks, tutors, students }: Props) {
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
-        <Badge variant="tertiary">Vínculos</Badge>
         <h1 className="text-3xl font-bold text-neutral-10 dark:text-neutral-95 md:text-4xl">
           Associar tutores aos alunos
         </h1>
@@ -50,7 +49,7 @@ export function LinksPanel({ initialLinks, tutors, students }: Props) {
         </p>
       </div>
 
-      <Card className="grid gap-4 rounded-[28px] border border-primary-60/20 bg-primary-95 p-6 shadow-soft dark:border-primary-60/30 dark:bg-primary-20/40 md:p-8">
+      <Card className="grid gap-4 rounded-2xl border border-primary-60/20 bg-primary-95 p-6 shadow-soft dark:border-primary-60/30 dark:bg-primary-20/40 md:p-8">
         <Badge variant="primary">Novo vínculo</Badge>
         <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
           <SelectField label="Tutor" value={tutorId} onChange={setTutorId} options={tutors} />
@@ -65,7 +64,7 @@ export function LinksPanel({ initialLinks, tutors, students }: Props) {
         )}
       </Card>
 
-      <Card className="grid gap-4 rounded-[28px] border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
+      <Card className="grid gap-4 rounded-2xl border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-neutral-10 dark:text-neutral-95">Vínculos existentes</h2>
           <span className="text-sm text-neutral-10/65 dark:text-neutral-80">
@@ -82,7 +81,7 @@ export function LinksPanel({ initialLinks, tutors, students }: Props) {
             links.map((link) => (
               <div
                 key={link.id}
-                className="flex flex-wrap items-center gap-3 rounded-[20px] border border-black/5 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/50"
+                className="flex flex-wrap items-center gap-3 rounded-2xl border border-black/5 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/50"
               >
                 <div className="grid flex-1 gap-1">
                   <span className="text-xs font-bold uppercase tracking-wide text-primary-40 dark:text-primary-70">

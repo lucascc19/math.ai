@@ -1,9 +1,10 @@
 import { Role } from "@prisma/client";
 import { calculateAccuracy, updateProgress } from "@/lib/domain/progress";
-import { defaultSettings, getLessonMeta, getTrackMeta } from "@/lib/server/curriculum";
+import { normalizeAccessibilitySettings } from "@/lib/accessibility-settings";
+import { getLessonMeta, getTrackMeta } from "@/lib/server/curriculum";
 import { createSession, initializeUserData, setSessionCookie, verifyPassword } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
-import type { LoginInput, SettingsInput, SubmitAnswerInput } from "@/lib/schemas";
+import type { LoginInput, SubmitAnswerInput } from "@/lib/schemas";
 
 export type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
 export type LoginResult = Awaited<ReturnType<typeof loginUser>>;
@@ -12,33 +13,11 @@ export type SubmitAnswerResult = Awaited<ReturnType<typeof submitAnswer>>;
 
 const prismaDb = prisma as any;
 
-function normalizeSettings(
-  settings?:
-    | {
-        fontSize: number;
-        spacing: number;
-        guidance: boolean;
-        minimal: boolean;
-        reducedMotion: boolean;
-        focusMode: string;
-      }
-    | null
-) {
-  return {
-    fontSize: settings?.fontSize ?? defaultSettings.fontSize,
-    spacing: settings?.spacing ?? defaultSettings.spacing,
-    guidance: settings?.guidance ?? defaultSettings.guidance,
-    minimal: settings?.minimal ?? defaultSettings.minimal,
-    reducedMotion: settings?.reducedMotion ?? defaultSettings.reducedMotion,
-    focusMode: (settings?.focusMode as SettingsInput["focusMode"] | undefined) ?? defaultSettings.focusMode
-  };
-}
-
 function emptyDashboardData() {
   return {
     isAuthenticated: false as const,
     user: null,
-    settings: normalizeSettings(),
+    settings: normalizeAccessibilitySettings(),
     stats: {
       totalAttempts: 0,
       totalCorrect: 0,
@@ -228,7 +207,7 @@ export async function getDashboardData(userId?: string | null) {
       email: user.email,
       role: user.role
     },
-    settings: normalizeSettings(user.accessibility),
+    settings: normalizeAccessibilitySettings(user.accessibility),
     stats: {
       totalAttempts,
       totalCorrect,
@@ -274,7 +253,7 @@ export async function updateAccessibilitySettings(userId: string, input: Setting
 
   return {
     ok: true,
-    settings: normalizeSettings(settings)
+    settings: normalizeAccessibilitySettings(settings)
   };
 }
 

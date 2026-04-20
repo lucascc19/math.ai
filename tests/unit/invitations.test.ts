@@ -9,7 +9,9 @@ const prismaMock = {
     findFirst: vi.fn(),
     findUnique: vi.fn(),
     create: vi.fn(),
-    update: vi.fn()
+    update: vi.fn(),
+    deleteMany: vi.fn(),
+    delete: vi.fn()
   },
   tutorStudent: {
     create: vi.fn()
@@ -203,5 +205,104 @@ describe("invitation service", () => {
       where: { id: "inv-1" },
       data: { revokedAt: expect.any(Date) }
     });
+  });
+
+  it("deletes an invitation permanently", async () => {
+    requireActorMock.mockResolvedValue({
+      id: "admin-1",
+      role: Role.ADMIN,
+      active: true
+    });
+    prismaMock.invitation.findUnique.mockResolvedValue({
+      id: "inv-1",
+      invitedByUserId: "admin-1",
+      usedAt: null,
+      revokedAt: null,
+      expiresAt: new Date("2026-04-30T00:00:00.000Z")
+    });
+    prismaMock.invitation.delete.mockResolvedValue(undefined);
+
+    const { deleteInvitation } = await import("@/lib/server/invitations");
+
+    const result = await deleteInvitation("inv-1");
+
+    expect(result).toEqual({ ok: true });
+    expect(prismaMock.invitation.delete).toHaveBeenCalledWith({
+      where: { id: "inv-1" }
+    });
+  });
+
+  it("resends a pending invitation by revoking the previous one and creating a new token", async () => {
+    requireActorMock.mockResolvedValue({
+      id: "admin-1",
+      role: Role.ADMIN,
+      active: true
+    });
+
+    const tx = {
+      invitation: {
+        findUnique: vi.fn().mockResolvedValue({
+          id: "inv-1",
+          email: "aluno@example.com",
+          role: Role.STUDENT,
+          tutorId: "tutor-9",
+          invitedByUserId: "tutor-9",
+          usedAt: null,
+          revokedAt: null,
+          expiresAt: new Date("2026-04-30T00:00:00.000Z")
+        }),
+        update: vi.fn().mockResolvedValue(undefined),
+        create: vi.fn().mockResolvedValue(undefined)
+      },
+      user: {
+        findUnique: vi.fn().mockResolvedValue(null)
+      }
+    };
+
+    prismaMock.$transaction.mockImplementation(async (callback: (db: typeof tx) => Promise<unknown>) => callback(tx));
+
+    const { resendInvitation } = await import("@/lib/server/invitations");
+
+    const result = await resendInvitation("inv-1");
+
+    expect(result.token).toBe("invite-token");
+    expect(tx.invitation.update).toHaveBeenCalledWith({
+      where: { id: "inv-1" },
+      data: { revokedAt: expect.any(Date) }
+    });
+    expect(tx.invitation.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          email: "aluno@example.com",
+          invitedByUserId: "tutor-9",
+          tokenHash: "hash:invite-token"
+        })
+      })
+    );
+  });
+
+  it("cleans up old invitations in actor scope", async () => {
+    requireActorMock.mockResolvedValue({
+      id: "tutor-1",
+      role: Role.TUTOR,
+      active: true
+    });
+    prismaMock.invitation.deleteMany.mockResolvedValue({ count: 3 });
+
+    const { cleanupInvitations } = await import("@/lib/server/invitations");
+
+    const result = await cleanupInvitations();
+
+    expect(result).toEqual({
+      ok: true,
+      deletedCount: 3
+    });
+    expect(prismaMock.invitation.deleteMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          invitedByUserId: "tutor-1"
+        })
+      })
+    );
   });
 });

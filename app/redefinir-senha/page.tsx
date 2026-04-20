@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 import { ResetPasswordForm } from "@/components/reset-password-form";
+import { getHomePathForRole } from "@/lib/role-home";
 import { tryGetCurrentSession } from "@/lib/server/auth";
 
 type PageProps = { searchParams: Promise<{ token?: string }> };
@@ -10,7 +11,7 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
   const session = await tryGetCurrentSession();
 
   if (session) {
-    redirect("/dashboard");
+    redirect(getHomePathForRole(session.user.role));
   }
 
   const params = await searchParams;

@@ -210,15 +210,6 @@ export const curriculum: CurriculumTrack[] = [
   }
 ];
 
-export const defaultSettings = {
-  fontSize: 16,
-  spacing: 24,
-  guidance: false,
-  minimal: false,
-  reducedMotion: false,
-  focusMode: "calmo"
-} as const;
-
 export const DEMO_USER = {
   name: "Aluno Demo",
   email: "aluno@basematematica.dev"

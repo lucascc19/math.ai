@@ -1,6 +1,9 @@
 import { redirect } from "next/navigation";
 import type { Role } from "@prisma/client";
+import { normalizeAccessibilitySettings } from "@/lib/accessibility-settings";
+import { getHomePathForRole } from "@/lib/role-home";
 import { clearSessionCookie, getCurrentSession } from "@/lib/server/auth";
+import type { SettingsInput } from "@/lib/schemas";
 
 export type GuardedUser = {
   id: string;
@@ -8,6 +11,7 @@ export type GuardedUser = {
   email: string;
   role: Role;
   active: boolean;
+  settings: SettingsInput;
 };
 
 export async function requirePageSession(): Promise<GuardedUser> {
@@ -27,7 +31,8 @@ export async function requirePageSession(): Promise<GuardedUser> {
     name: session.user.name,
     email: session.user.email,
     role: session.user.role,
-    active: session.user.active ?? true
+    active: session.user.active ?? true,
+    settings: normalizeAccessibilitySettings(session.user.accessibility)
   };
 }
 
@@ -35,7 +40,7 @@ export async function requirePageRole(roles: Role[]): Promise<GuardedUser> {
   const user = await requirePageSession();
 
   if (!roles.includes(user.role)) {
-    redirect("/dashboard");
+    redirect(getHomePathForRole(user.role));
   }
 
   return user;

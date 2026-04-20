@@ -59,7 +59,6 @@ export function UsersPanel({
     <div className="grid gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="grid gap-2">
-          <Badge variant="tertiary">Usuarios</Badge>
           <h1 className="text-3xl font-bold text-neutral-10 dark:text-neutral-95 md:text-4xl">
             Gerenciar contas da plataforma
           </h1>
@@ -80,7 +79,7 @@ export function UsersPanel({
         }}
       />
 
-      <Card className="grid gap-4 rounded-[28px] border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
+      <Card className="grid gap-4 rounded-2xl border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
         <div className="flex flex-wrap items-center gap-3">
           <FilterSelect
             label="Papel"
@@ -170,7 +169,7 @@ function UserRow({ user }: { user: AdminUser }) {
   const busy = roleMutation.isPending || activeMutation.isPending;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-[20px] border border-black/5 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/50">
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-black/5 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/50">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-95 font-bold text-primary-40 dark:bg-primary-20/50 dark:text-primary-70">
         {user.name.charAt(0).toUpperCase()}
       </div>

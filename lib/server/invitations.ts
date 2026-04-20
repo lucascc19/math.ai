@@ -52,6 +52,31 @@ function assertPending(invitation: { usedAt: Date | null; revokedAt: Date | null
   if (status === "expired") throw new InvitationExpiredError();
 }
 
+function assertCanManageInvitation(actor: { id: string; role: Role }, invitation: { invitedByUserId: string }) {
+  if (actor.role === Role.TUTOR && invitation.invitedByUserId !== actor.id) {
+    throw new ForbiddenError("Voce so pode gerenciar seus proprios convites.");
+  }
+}
+
+function buildInvitationPayload(input: { email: string; role: Role; invitedByUserId: string; tutorId?: string | null }) {
+  const token = generateOpaqueToken();
+  const tokenHash = hashToken(token);
+  const expiresAt = new Date(Date.now() + INVITATION_TTL_MS);
+
+  return {
+    token,
+    expiresAt,
+    data: {
+      email: input.email,
+      role: input.role,
+      tokenHash,
+      invitedByUserId: input.invitedByUserId,
+      tutorId: input.tutorId ?? null,
+      expiresAt
+    }
+  };
+}
+
 export async function createInvitation(input: CreateInvitationInput) {
   const actor = await requireActor("invite.list");
   const targetRole = input.role as Role;
@@ -88,22 +113,18 @@ export async function createInvitation(input: CreateInvitationInput) {
     throw new ForbiddenError("Tutores so podem se vincular como tutor no convite.");
   }
 
-  const token = generateOpaqueToken();
-  const tokenHash = hashToken(token);
-  const expiresAt = new Date(Date.now() + INVITATION_TTL_MS);
-
-  await prismaDb.invitation.create({
-    data: {
-      email: input.email,
-      role: targetRole,
-      tokenHash,
-      invitedByUserId: actor.id,
-      tutorId: tutorId ?? null,
-      expiresAt
-    }
+  const invitationPayload = buildInvitationPayload({
+    email: input.email,
+    role: targetRole,
+    invitedByUserId: actor.id,
+    tutorId
   });
 
-  return { token, email: input.email, role: targetRole, expiresAt };
+  await prismaDb.invitation.create({
+    data: invitationPayload.data
+  });
+
+  return { token: invitationPayload.token, email: input.email, role: targetRole, expiresAt: invitationPayload.expiresAt };
 }
 
 export async function listInvitations(filters: { status?: string; role?: Role } = {}) {
@@ -239,9 +260,7 @@ export async function revokeInvitation(invitationId: string) {
 
   if (!invitation) throw new NotFoundError("Convite nao encontrado.");
 
-  if (actor.role === Role.TUTOR && invitation.invitedByUserId !== actor.id) {
-    throw new ForbiddenError("Voce so pode revogar seus proprios convites.");
-  }
+  assertCanManageInvitation(actor, invitation);
 
   const status = getInvitationStatus(invitation);
   if (status === "used") throw new Error("Convite ja utilizado nao pode ser revogado.");
@@ -252,4 +271,88 @@ export async function revokeInvitation(invitationId: string) {
   });
 
   return { ok: true };
+}
+
+export async function deleteInvitation(invitationId: string) {
+  const actor = await requireActor("invite.delete");
+  const invitation = await prismaDb.invitation.findUnique({ where: { id: invitationId } });
+
+  if (!invitation) throw new NotFoundError("Convite nao encontrado.");
+
+  assertCanManageInvitation(actor, invitation);
+
+  await prismaDb.invitation.delete({
+    where: { id: invitationId }
+  });
+
+  return { ok: true };
+}
+
+export async function resendInvitation(invitationId: string) {
+  const actor = await requireActor("invite.resend");
+
+  return prismaDb.$transaction(async (tx: any) => {
+    const invitation = await tx.invitation.findUnique({
+      where: { id: invitationId }
+    });
+
+    if (!invitation) throw new NotFoundError("Convite nao encontrado.");
+
+    assertCanManageInvitation(actor, invitation);
+
+    const status = getInvitationStatus(invitation);
+    if (status === "used") {
+      throw new Error("Convites aceitos nao podem ser reenviados.");
+    }
+
+    const existingUser = await tx.user.findUnique({
+      where: { email: invitation.email }
+    });
+    if (existingUser) {
+      throw new Error("Ja existe uma conta com este e-mail.");
+    }
+
+    if (status === "pending") {
+      await tx.invitation.update({
+        where: { id: invitation.id },
+        data: { revokedAt: new Date() }
+      });
+    }
+
+    const invitationPayload = buildInvitationPayload({
+      email: invitation.email,
+      role: invitation.role,
+      invitedByUserId: invitation.invitedByUserId,
+      tutorId: invitation.tutorId
+    });
+
+    await tx.invitation.create({
+      data: invitationPayload.data
+    });
+
+    return {
+      token: invitationPayload.token,
+      email: invitation.email,
+      role: invitation.role,
+      expiresAt: invitationPayload.expiresAt
+    };
+  });
+}
+
+export async function cleanupInvitations() {
+  const actor = await requireActor("invite.cleanup");
+  const where: Record<string, unknown> = {
+    OR: [{ revokedAt: { not: null } }, { usedAt: { not: null } }, { usedAt: null, revokedAt: null, expiresAt: { lte: new Date() } }]
+  };
+
+  if (actor.role === Role.TUTOR) {
+    where.invitedByUserId = actor.id;
+  }
+
+  const deleted = await prismaDb.invitation.deleteMany({ where });
+
+  return {
+    ok: true,
+    deletedCount: deleted.count
+  };
 }

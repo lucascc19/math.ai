@@ -36,7 +36,7 @@ export function StudentsPanel({ initialStudents, metrics }: Props) {
         />
       </div>
 
-      <Card className="grid gap-4 rounded-[28px] border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
+      <Card className="grid gap-4 rounded-2xl border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-neutral-10 dark:text-neutral-95">Lista de alunos</h2>
           <span className="text-sm text-neutral-10/65 dark:text-neutral-80">
@@ -54,7 +54,7 @@ export function StudentsPanel({ initialStudents, metrics }: Props) {
               <Link
                 key={student.id}
                 href={`/tutor/alunos/${student.id}`}
-                className="focus-ring flex flex-wrap items-center gap-3 rounded-[20px] border border-black/5 bg-white/70 p-4 transition hover:border-primary-60/30 dark:border-white/10 dark:bg-neutral-20/50 dark:hover:border-primary-60/50"
+                className="focus-ring flex flex-wrap items-center gap-3 rounded-2xl border border-black/5 bg-white/70 p-4 transition hover:border-primary-60/30 dark:border-white/10 dark:bg-neutral-20/50 dark:hover:border-primary-60/50"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary-95 font-bold text-secondary-40 dark:bg-secondary-20/40 dark:text-secondary-70">
                   {student.name.charAt(0).toUpperCase()}
@@ -90,7 +90,7 @@ function MetricTile({
   icon: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <Card className="grid gap-3 rounded-[24px] border border-black/5 bg-white/85 p-5 shadow-soft dark:border-white/10 dark:bg-neutral-20/70">
+    <Card className="grid gap-3 rounded-2xl border border-black/5 bg-white/85 p-5 shadow-soft dark:border-white/10 dark:bg-neutral-20/70">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-bold uppercase tracking-[0.14em] text-primary-40 dark:text-primary-70">
           {title}

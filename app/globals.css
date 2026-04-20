@@ -21,23 +21,6 @@ body {
   font-size: var(--reading-size);
 }
 
-body.minimal-ui .decorative-only {
-  display: none;
-}
-
-body.minimal-ui .optional-panel {
-  display: none;
-}
-
-body.guidance-on .guidance-panel {
-  border-color: rgba(119, 149, 248, 0.35);
-  background: #ebf0ff;
-}
-
-body.guidance-on .guidance-step {
-  background: rgba(119, 149, 248, 0.1);
-}
-
 body.focus-guiado .soft-card,
 body.focus-guiado .focus-surface {
   box-shadow: 0 0 0 3px rgba(119, 149, 248, 0.18), 0 20px 60px rgba(57, 89, 184, 0.08);
@@ -67,7 +50,7 @@ body.focus-contraste select {
 }
 
 .soft-card {
-  @apply rounded-[20px] border border-black/5 bg-white shadow-soft;
+  @apply rounded-2xl border border-black/5 bg-white shadow-soft;
 }
 
 .eyebrow {

@@ -156,10 +156,10 @@ export const api = {
   },
   invitations: {
     create: (input: CreateInvitationInput) =>
-      request<{ ok: true; invitation: { token: string; email: string; role: Role; expiresAt: string; inviteUrl: string } }>(
-        "/api/invitations",
-        { method: "POST", body: JSON.stringify(input) }
-      ),
+      request<{ ok: true; invitation: InvitationLinkResult }>("/api/invitations", {
+        method: "POST",
+        body: JSON.stringify(input)
+      }),
     list: (filters: { status?: string; role?: Role } = {}) => {
       const params = new URLSearchParams();
       if (filters.status) params.set("status", filters.status);
@@ -175,7 +175,17 @@ export const api = {
         { method: "POST", body: JSON.stringify(input) }
       ),
     revoke: (invitationId: string) =>
-      request<{ ok: true }>(`/api/invitations/${invitationId}/revoke`, { method: "POST" })
+      request<{ ok: true }>(`/api/invitations/${invitationId}/revoke`, { method: "POST" }),
+    delete: (invitationId: string) =>
+      request<{ ok: true }>(`/api/invitations/${invitationId}`, { method: "DELETE" }),
+    resend: (invitationId: string) =>
+      request<{ ok: true; invitation: InvitationLinkResult }>(`/api/invitations/${invitationId}/resend`, {
+        method: "POST"
+      }),
+    cleanup: () =>
+      request<{ ok: true; deletedCount: number }>("/api/invitations", {
+        method: "DELETE"
+      })
   }
 };
 
@@ -269,6 +279,14 @@ export type InvitationItem = {
   status: InvitationStatus;
   invitedBy: { id: string; name: string; email: string };
   tutor: { id: string; name: string; email: string } | null;
+};
+
+export type InvitationLinkResult = {
+  token: string;
+  email: string;
+  role: Role;
+  expiresAt: string;
+  inviteUrl: string;
 };
 
 export type InvitationPublic = {

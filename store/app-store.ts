@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type { SettingsInput } from "@/lib/schemas";
 import type { DashboardResponse } from "@/lib/api";
+import { defaultAccessibilitySettings } from "@/lib/accessibility-settings";
 
 type AppState = {
   activeSkillId: string | null;
@@ -13,18 +14,9 @@ type AppState = {
   setDashboard: (value: DashboardResponse) => void;
 };
 
-const defaultSettings: SettingsInput = {
-  fontSize: 16,
-  spacing: 24,
-  guidance: false,
-  minimal: false,
-  reducedMotion: false,
-  focusMode: "calmo"
-};
-
 export const useAppStore = create<AppState>((set) => ({
   activeSkillId: null,
-  settings: defaultSettings,
+  settings: defaultAccessibilitySettings,
   dashboard: null,
   setActiveSkillId: (value) => set({ activeSkillId: value }),
   setSettings: (value) => set({ settings: value }),

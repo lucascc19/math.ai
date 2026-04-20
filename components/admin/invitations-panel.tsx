@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Role } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Clock, Copy, MailX, Plus, XCircle } from "lucide-react";
+import { Check, Clock, Copy, MailX, MoreHorizontal, Plus, RefreshCcw, Trash2, XCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { api, type AdminUser, type InvitationItem } from "@/lib/api";
 import { createInvitationSchema, type CreateInvitationInput } from "@/lib/schemas";
@@ -50,6 +50,14 @@ export function AdminInvitationsPanel({
     initialData: initialInvitations
   });
 
+  const cleanupMutation = useMutation({
+    mutationFn: api.invitations.cleanup,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "invitations"] });
+      setLastCreated(null);
+    }
+  });
+
   function handleCreated(result: CreatedInvite) {
     setCreating(false);
     setLastCreated(result);
@@ -60,7 +68,6 @@ export function AdminInvitationsPanel({
     <div className="grid gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="grid gap-2">
-          <Badge variant="tertiary">Convites</Badge>
           <h1 className="text-3xl font-bold text-neutral-10 dark:text-neutral-95 md:text-4xl">
             Gerenciar convites
           </h1>
@@ -87,7 +94,7 @@ export function AdminInvitationsPanel({
         />
       )}
 
-      <Card className="grid gap-4 rounded-[28px] border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
+      <Card className="grid gap-4 rounded-2xl border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
         <div className="flex flex-wrap items-center gap-3">
           <FilterSelect
             label="Status"
@@ -115,7 +122,17 @@ export function AdminInvitationsPanel({
           <span className="ml-auto text-sm text-neutral-10/65 dark:text-neutral-80">
             {invitations.length} {invitations.length === 1 ? "convite" : "convites"}
           </span>
+          <Button type="button" variant="ghost" onClick={() => cleanupMutation.mutate()} disabled={cleanupMutation.isPending}>
+            <Trash2 className="mr-2 h-4 w-4" />
+            {cleanupMutation.isPending ? "Limpando..." : "Limpar antigos"}
+          </Button>
         </div>
+        {cleanupMutation.data && (
+          <p className="text-xs text-neutral-10/65 dark:text-neutral-80">
+            {cleanupMutation.data.deletedCount} convites removidos. A limpeza apaga todos os convites que nao estao mais pendentes.
+          </p>
+        )}
+        {cleanupMutation.error && <p className="text-xs text-tertiary-30">{cleanupMutation.error.message}</p>}
 
         <div className="grid gap-3">
           {invitations.length === 0 ? (
@@ -127,7 +144,8 @@ export function AdminInvitationsPanel({
               <InvitationRow
                 key={invitation.id}
                 invitation={invitation}
-                onRevoked={() => queryClient.invalidateQueries({ queryKey: ["admin", "invitations"] })}
+                onChanged={() => queryClient.invalidateQueries({ queryKey: ["admin", "invitations"] })}
+                onResent={handleCreated}
               />
             ))
           )}
@@ -158,7 +176,7 @@ function InviteCreatedBanner({
   }
 
   return (
-    <Card className="grid gap-3 rounded-[28px] border border-secondary-60/20 bg-secondary-95 p-6 shadow-soft dark:border-secondary-60/30 dark:bg-secondary-20/30">
+    <Card className="grid gap-3 rounded-2xl border border-secondary-60/20 bg-secondary-95 p-6 shadow-soft dark:border-secondary-60/30 dark:bg-secondary-20/30">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold text-neutral-10 dark:text-neutral-95">
           Convite gerado para <span className="text-primary-40">{email}</span>
@@ -189,14 +207,41 @@ function InviteCreatedBanner({
 
 function InvitationRow({
   invitation,
-  onRevoked
+  onChanged,
+  onResent
 }: {
   invitation: InvitationItem;
-  onRevoked: () => void;
+  onChanged: () => void;
+  onResent: (result: CreatedInvite) => void;
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const canResend = invitation.status !== "used";
+  const canRevoke = invitation.status === "pending";
   const revokeMutation = useMutation({
     mutationFn: () => api.invitations.revoke(invitation.id),
-    onSuccess: onRevoked
+    onSuccess: () => {
+      setMenuOpen(false);
+      onChanged();
+    }
+  });
+  const resendMutation = useMutation({
+    mutationFn: () => api.invitations.resend(invitation.id),
+    onSuccess: (result) => {
+      setMenuOpen(false);
+      onChanged();
+      onResent({
+        token: result.invitation.token,
+        email: result.invitation.email,
+        inviteUrl: result.invitation.inviteUrl
+      });
+    }
+  });
+  const deleteMutation = useMutation({
+    mutationFn: () => api.invitations.delete(invitation.id),
+    onSuccess: () => {
+      setMenuOpen(false);
+      onChanged();
+    }
   });
 
   const statusColors: Record<string, string> = {
@@ -210,35 +255,75 @@ function InvitationRow({
     { pending: Clock, used: Check, expired: MailX, revoked: XCircle }[invitation.status] ?? Clock;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-[20px] border border-black/5 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/50">
-      <div className="grid min-w-0 flex-1 gap-0.5">
-        <span className="truncate text-sm font-semibold text-neutral-10 dark:text-neutral-95">{invitation.email}</span>
-        <span className="text-xs text-neutral-10/65 dark:text-neutral-80">
-          por {invitation.invitedBy.name} · {new Date(invitation.createdAt).toLocaleDateString("pt-BR")}
-          {invitation.tutor && <> · tutor: {invitation.tutor.name}</>}
-        </span>
+    <div className="grid gap-3 rounded-2xl border border-black/5 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/50 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+      <div className="grid min-w-0 gap-2">
+        <div className="grid gap-0.5">
+          <span className="truncate text-sm font-semibold text-neutral-10 dark:text-neutral-95">{invitation.email}</span>
+          <span className="text-xs text-neutral-10/65 dark:text-neutral-80">
+            por {invitation.invitedBy.name} · {new Date(invitation.createdAt).toLocaleDateString("pt-BR")}
+            {invitation.tutor && <> · tutor: {invitation.tutor.name}</>}
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary">{ROLE_LABEL[invitation.role] ?? invitation.role}</Badge>
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${statusColors[invitation.status]}`}
+          >
+            <StatusIcon className="h-3 w-3" />
+            {STATUS_LABEL[invitation.status] ?? invitation.status}
+          </span>
+        </div>
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="secondary">{ROLE_LABEL[invitation.role] ?? invitation.role}</Badge>
-        <span
-          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold ${statusColors[invitation.status]}`}
-        >
-          <StatusIcon className="h-3 w-3" />
-          {STATUS_LABEL[invitation.status] ?? invitation.status}
-        </span>
+      <div className="relative flex flex-wrap items-center justify-start gap-2 md:justify-end">
+        <>
+          <button
+            type="button"
+            onClick={() => setMenuOpen((value) => !value)}
+            className="focus-ring inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-10 hover:border-black/20 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-90"
+          >
+            <MoreHorizontal className="h-3.5 w-3.5" />
+            Ações
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 top-full z-10 mt-2 grid min-w-[180px] gap-1 rounded-2xl border border-black/10 bg-white p-2 shadow-soft dark:border-white/10 dark:bg-neutral-20">
+              {canResend && (
+                <button
+                  type="button"
+                  disabled={resendMutation.isPending || revokeMutation.isPending || deleteMutation.isPending}
+                  onClick={() => resendMutation.mutate()}
+                  className="focus-ring inline-flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-primary-40 hover:bg-primary-95 disabled:opacity-50 dark:text-primary-70 dark:hover:bg-primary-20/30"
+                >
+                  <RefreshCcw className="h-3.5 w-3.5" />
+                  {resendMutation.isPending ? "Reenviando..." : "Reenviar convite"}
+                </button>
+              )}
+              {canRevoke && (
+                <button
+                  type="button"
+                  disabled={revokeMutation.isPending || resendMutation.isPending || deleteMutation.isPending}
+                  onClick={() => revokeMutation.mutate()}
+                  className="focus-ring inline-flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-tertiary-40 hover:bg-tertiary-95 disabled:opacity-50 dark:text-tertiary-70 dark:hover:bg-tertiary-20/30"
+                >
+                  <XCircle className="h-3.5 w-3.5" />
+                  {revokeMutation.isPending ? "Revogando..." : "Revogar convite"}
+                </button>
+              )}
+              <button
+                type="button"
+                disabled={deleteMutation.isPending || resendMutation.isPending || revokeMutation.isPending}
+                onClick={() => deleteMutation.mutate()}
+                className="focus-ring inline-flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-tertiary-40 hover:bg-tertiary-95 disabled:opacity-50 dark:text-tertiary-70 dark:hover:bg-tertiary-20/30"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {deleteMutation.isPending ? "Excluindo..." : "Excluir convite"}
+              </button>
+            </div>
+          )}
+        </>
       </div>
-      {invitation.status === "pending" && (
-        <button
-          type="button"
-          disabled={revokeMutation.isPending}
-          onClick={() => revokeMutation.mutate()}
-          className="focus-ring inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-tertiary-40 hover:border-tertiary-60/30 disabled:opacity-50 dark:border-white/15 dark:bg-neutral-20/60 dark:text-tertiary-70"
-        >
-          <XCircle className="h-3 w-3" />
-          Revogar
-        </button>
-      )}
       {revokeMutation.error && <p className="w-full text-xs text-tertiary-30">{revokeMutation.error.message}</p>}
+      {resendMutation.error && <p className="w-full text-xs text-tertiary-30">{resendMutation.error.message}</p>}
+      {deleteMutation.error && <p className="w-full text-xs text-tertiary-30">{deleteMutation.error.message}</p>}
     </div>
   );
 }
@@ -274,7 +359,7 @@ export function CreateInvitationForm({
   });
 
   return (
-    <Card className="grid gap-4 rounded-[28px] border border-primary-60/20 bg-primary-95 p-6 shadow-soft dark:border-primary-60/30 dark:bg-primary-20/40 md:p-8">
+    <Card className="grid gap-4 rounded-2xl border border-primary-60/20 bg-primary-95 p-6 shadow-soft dark:border-primary-60/30 dark:bg-primary-20/40 md:p-8">
       <div className="grid gap-1">
         <Badge variant="primary">Novo convite</Badge>
         <h2 className="text-xl font-bold text-neutral-10 dark:text-neutral-95">Convidar pessoa</h2>

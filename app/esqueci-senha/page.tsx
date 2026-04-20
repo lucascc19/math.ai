@@ -2,13 +2,14 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
+import { getHomePathForRole } from "@/lib/role-home";
 import { tryGetCurrentSession } from "@/lib/server/auth";
 
 export default async function ForgotPasswordPage() {
   const session = await tryGetCurrentSession();
 
   if (session) {
-    redirect("/dashboard");
+    redirect(getHomePathForRole(session.user.role));
   }
 
   return (

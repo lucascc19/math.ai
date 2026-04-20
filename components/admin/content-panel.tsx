@@ -28,7 +28,6 @@ export function ContentPanel({ initialTracks }: { initialTracks: AdminTrack[] })
     <div className="grid gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="grid gap-2">
-          <Badge variant="tertiary">Conteúdo</Badge>
           <h1 className="text-3xl font-bold text-neutral-10 dark:text-neutral-95 md:text-4xl">
             Trilhas e lições
           </h1>
@@ -51,7 +50,7 @@ export function ContentPanel({ initialTracks }: { initialTracks: AdminTrack[] })
         />
       )}
 
-      <Card className="grid gap-4 rounded-[28px] border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
+      <Card className="grid gap-4 rounded-2xl border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-neutral-10 dark:text-neutral-95">Lista de trilhas</h2>
           <span className="text-sm text-neutral-10/65 dark:text-neutral-80">
@@ -91,7 +90,7 @@ function TrackRow({ track }: { track: AdminTrack }) {
   const busy = publishMutation.isPending || deleteMutation.isPending;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-[20px] border border-black/5 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/50">
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-black/5 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/50">
       <BookOpen className="h-5 w-5 text-primary-40 dark:text-primary-70" />
       <div className="grid min-w-0 flex-1 gap-0.5">
         <span className="truncate text-sm font-semibold text-neutral-10 dark:text-neutral-95">{track.name}</span>
@@ -170,7 +169,7 @@ function CreateTrackForm({ onSuccess }: { onSuccess: () => void }) {
   });
 
   return (
-    <Card className="grid gap-4 rounded-[28px] border border-primary-60/20 bg-primary-95 p-6 shadow-soft dark:border-primary-60/30 dark:bg-primary-20/40 md:p-8">
+    <Card className="grid gap-4 rounded-2xl border border-primary-60/20 bg-primary-95 p-6 shadow-soft dark:border-primary-60/30 dark:bg-primary-20/40 md:p-8">
       <div className="grid gap-1">
         <Badge variant="primary">Nova trilha</Badge>
         <h2 className="text-xl font-bold text-neutral-10 dark:text-neutral-95">Criar trilha em rascunho</h2>

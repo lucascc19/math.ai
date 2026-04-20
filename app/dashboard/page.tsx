@@ -1,7 +1,8 @@
-import { DashboardApp } from "@/components/dashboard-app";
+import { redirect } from "next/navigation";
+import { getHomePathForRole } from "@/lib/role-home";
 import { requirePageSession } from "@/lib/server/guards";
 
 export default async function DashboardPage() {
-  await requirePageSession();
-  return <DashboardApp />;
+  const user = await requirePageSession();
+  redirect(getHomePathForRole(user.role));
 }

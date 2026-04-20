@@ -113,7 +113,7 @@ export function TrackDetailPanel({ initialTrack }: Props) {
 
       <TrackEditForm track={track} onSuccess={invalidate} />
 
-      <Card className="grid gap-4 rounded-[28px] border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
+      <Card className="grid gap-4 rounded-2xl border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="grid gap-1">
             <h2 className="text-lg font-bold text-neutral-10 dark:text-neutral-95">Lições</h2>
@@ -179,7 +179,7 @@ function TrackEditForm({ track, onSuccess }: { track: AdminTrackDetail; onSucces
   });
 
   return (
-    <Card className="grid gap-4 rounded-[28px] border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
+    <Card className="grid gap-4 rounded-2xl border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
       <div className="grid gap-1">
         <Badge variant="tertiary">Metadados</Badge>
         <h2 className="text-lg font-bold text-neutral-10 dark:text-neutral-95">Editar dados da trilha</h2>
@@ -233,7 +233,7 @@ function LessonRow({
   const busy = publishMutation.isPending || deleteMutation.isPending || reorderBusy;
 
   return (
-    <div className="grid gap-3 rounded-[20px] border border-black/5 bg-white/70 p-5 dark:border-white/10 dark:bg-neutral-20/50">
+    <div className="grid gap-3 rounded-2xl border border-black/5 bg-white/70 p-5 dark:border-white/10 dark:bg-neutral-20/50">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex flex-col items-center gap-1">
           <button
@@ -353,7 +353,7 @@ function CreateLessonForm({
   });
 
   return (
-    <Card className="grid gap-3 rounded-[24px] border border-secondary-60/20 bg-secondary-95 p-6 shadow-soft dark:border-secondary-60/30 dark:bg-secondary-20/40">
+    <Card className="grid gap-3 rounded-2xl border border-secondary-60/20 bg-secondary-95 p-6 shadow-soft dark:border-secondary-60/30 dark:bg-secondary-20/40">
       <Badge variant="secondary">Nova lição (rascunho)</Badge>
       <LessonFormFields form={form} />
       <div className="flex flex-wrap items-center gap-3">
