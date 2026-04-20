@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -8,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
+  ArrowRight,
   BarChart3,
   BookOpen,
   Brain,
@@ -128,7 +130,14 @@ export function DashboardApp() {
   }, [settings]);
 
   if (dashboardQuery.isLoading || !dashboard) {
-    return <div className="flex min-h-screen items-center justify-center text-neutral-10/70">Carregando sistema...</div>;
+    return (
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-neutral-95">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(119,149,248,0.18),transparent_26%),radial-gradient(circle_at_bottom,rgba(134,215,188,0.16),transparent_30%)]" />
+        <div className="relative flex h-28 w-28 items-center justify-center rounded-[28px] border border-primary-60/15 bg-white/80 shadow-soft animate-pulse">
+          <Image alt="Logo do projeto Base Matemática" src="/logo-bg-transparent.svg" width={72} height={72} priority />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -403,30 +412,57 @@ export function DashboardApp() {
           </Card>
         </section>
 
-        <section className="adaptive-stack optional-panel grid items-start xl:grid-cols-3">
-          <RolePanel
-            badge="Tutor"
-            title="Painel do tutor"
-            description="Acompanha alunos, identifica habilidades fragilizadas e organiza intervencoes curtas."
-            icon={Users}
-            metrics={[
-              { label: "Alunos monitorados", value: String(dashboard.tutor.studentsTracked) },
-              { label: "Em risco", value: String(dashboard.tutor.studentsAtRisk) },
-              { label: "Maior dificuldade", value: dashboard.tutor.topDifficulty }
-            ]}
-          />
-          <RolePanel
-            badge="Admin"
-            title="CMS e governanca"
-            description="Administra trilhas, licoes, revisoes de conteudo e a base estrutural do sistema."
-            icon={ShieldCheck}
-            metrics={[
-              { label: "Trilhas publicadas", value: String(dashboard.admin.publishedTracks) },
-              { label: "Licoes", value: String(dashboard.admin.totalLessons) },
-              { label: "Revisoes pendentes", value: String(dashboard.admin.pendingReviews) }
-            ]}
-          />
-        </section>
+        {(dashboard.tutorSnapshot || dashboard.adminSnapshot) && (
+          <section className="adaptive-stack optional-panel grid items-start xl:grid-cols-2">
+            {dashboard.tutorSnapshot && (
+              <RolePanel
+                badge="Tutor"
+                title="Sua carteira de alunos"
+                description="Acompanhe tentativas, acertos e quem precisa de mais atenção."
+                icon={Users}
+                href="/tutor/alunos"
+                ctaLabel="Abrir painel do tutor"
+                metrics={[
+                  { label: "Alunos vinculados", value: String(dashboard.tutorSnapshot.studentsTracked) },
+                  { label: "Tentativas", value: String(dashboard.tutorSnapshot.totalAttempts) },
+                  {
+                    label: "Precisão",
+                    value: dashboard.tutorSnapshot.totalAttempts
+                      ? `${Math.round(
+                          (dashboard.tutorSnapshot.totalCorrect / dashboard.tutorSnapshot.totalAttempts) * 100
+                        )}%`
+                      : "—"
+                  },
+                  { label: "Em risco (< 3 tentativas)", value: String(dashboard.tutorSnapshot.studentsAtRisk) }
+                ]}
+              />
+            )}
+            {dashboard.adminSnapshot && (
+              <RolePanel
+                badge="Admin"
+                title="Visão geral da plataforma"
+                description="Totais da base: usuários, conteúdo publicado e rascunhos em andamento."
+                icon={ShieldCheck}
+                href="/admin/usuarios"
+                ctaLabel="Abrir painel admin"
+                metrics={[
+                  { label: "Usuários ativos", value: `${dashboard.adminSnapshot.activeUsers}/${dashboard.adminSnapshot.totalUsers}` },
+                  { label: "Tutores", value: String(dashboard.adminSnapshot.totalTutors) },
+                  { label: "Alunos", value: String(dashboard.adminSnapshot.totalStudents) },
+                  { label: "Vínculos tutor-aluno", value: String(dashboard.adminSnapshot.tutorLinks) },
+                  {
+                    label: "Trilhas (publicadas/rascunho)",
+                    value: `${dashboard.adminSnapshot.publishedTracks}/${dashboard.adminSnapshot.draftTracks}`
+                  },
+                  {
+                    label: "Lições (publicadas/rascunho)",
+                    value: `${dashboard.adminSnapshot.publishedLessons}/${dashboard.adminSnapshot.draftLessons}`
+                  }
+                ]}
+              />
+            )}
+          </section>
+        )}
       </section>
     </main>
   );
@@ -502,13 +538,17 @@ function RolePanel({
   title,
   description,
   icon: Icon,
-  metrics
+  metrics,
+  href,
+  ctaLabel
 }: {
   badge: string;
   title: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
   metrics: Array<{ label: string; value: string }>;
+  href?: string;
+  ctaLabel?: string;
 }) {
   return (
     <Card className="grid gap-5">
@@ -528,6 +568,14 @@ function RolePanel({
           </div>
         ))}
       </div>
+      {href && ctaLabel && (
+        <Button asChild variant="ghost" className="w-fit">
+          <Link href={href as never}>
+            {ctaLabel}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
+      )}
     </Card>
   );
 }

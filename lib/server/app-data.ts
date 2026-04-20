@@ -47,17 +47,79 @@ function emptyDashboardData() {
       activeTracks: 0
     },
     skills: [],
-    tutor: {
-      studentsTracked: 18,
-      studentsAtRisk: 5,
-      topDifficulty: "Divisao",
-      averageWeeklySessions: 3
-    },
-    admin: {
-      publishedTracks: 0,
-      totalLessons: 0,
-      pendingReviews: 2
+    tutorSnapshot: null,
+    adminSnapshot: null
+  };
+}
+
+async function getAdminSnapshot() {
+  const [totalUsers, totalTutors, totalStudents, activeUsers, publishedTracks, draftTracks, publishedLessons, draftLessons, tutorLinks] =
+    await Promise.all([
+      prismaDb.user.count(),
+      prismaDb.user.count({ where: { role: Role.TUTOR } }),
+      prismaDb.user.count({ where: { role: Role.STUDENT } }),
+      prismaDb.user.count({ where: { active: true } }),
+      prismaDb.skillTrack.count({ where: { status: "PUBLISHED" } }),
+      prismaDb.skillTrack.count({ where: { status: "DRAFT" } }),
+      prismaDb.lesson.count({ where: { status: "PUBLISHED" } }),
+      prismaDb.lesson.count({ where: { status: "DRAFT" } }),
+      prismaDb.tutorStudent.count()
+    ]);
+
+  return {
+    totalUsers,
+    totalTutors,
+    totalStudents,
+    activeUsers,
+    publishedTracks,
+    draftTracks,
+    publishedLessons,
+    draftLessons,
+    tutorLinks
+  };
+}
+
+async function getTutorSnapshot(tutorId: string) {
+  const links = await prismaDb.tutorStudent.findMany({
+    where: { tutorId },
+    select: {
+      studentId: true,
+      student: { select: { id: true, name: true, email: true, active: true } }
     }
+  });
+  const studentIds = links.map((link: any) => link.studentId);
+
+  if (studentIds.length === 0) {
+    return {
+      studentsTracked: 0,
+      totalAttempts: 0,
+      totalCorrect: 0,
+      studentsAtRisk: 0,
+      recentStudents: []
+    };
+  }
+
+  const [totalAttempts, totalCorrect, atRiskAttemptsByStudent] = await Promise.all([
+    prismaDb.attempt.count({ where: { userId: { in: studentIds } } }),
+    prismaDb.attempt.count({ where: { userId: { in: studentIds }, isCorrect: true } }),
+    prismaDb.attempt.groupBy({
+      by: ["userId"],
+      where: { userId: { in: studentIds } },
+      _count: { _all: true }
+    })
+  ]);
+
+  const studentsAtRisk = studentIds.filter((id: string) => {
+    const row = atRiskAttemptsByStudent.find((r: any) => r.userId === id);
+    return !row || row._count._all < 3;
+  }).length;
+
+  return {
+    studentsTracked: studentIds.length,
+    totalAttempts,
+    totalCorrect,
+    studentsAtRisk,
+    recentStudents: links.slice(0, 5).map((link: any) => link.student)
   };
 }
 
@@ -154,6 +216,9 @@ export async function getDashboardData(userId?: string | null) {
   const totalAttempts = skills.reduce((sum: number, skill: any) => sum + skill.progress.attempts, 0);
   const totalCorrect = skills.reduce((sum: number, skill: any) => sum + skill.progress.correct, 0);
 
+  const tutorSnapshot = user.role === Role.TUTOR ? await getTutorSnapshot(user.id) : null;
+  const adminSnapshot = user.role === Role.ADMIN ? await getAdminSnapshot() : null;
+
   return {
     isAuthenticated: true as const,
     user: {
@@ -170,17 +235,8 @@ export async function getDashboardData(userId?: string | null) {
       activeTracks: skills.length
     },
     skills,
-    tutor: {
-      studentsTracked: 18,
-      studentsAtRisk: 5,
-      topDifficulty: "Divisao",
-      averageWeeklySessions: 3
-    },
-    admin: {
-      publishedTracks: skills.length,
-      totalLessons: dbTracks.reduce((sum: number, track: any) => sum + track.lessons.length, 0),
-      pendingReviews: 2
-    }
+    tutorSnapshot,
+    adminSnapshot
   };
 }
 

@@ -71,7 +71,7 @@ export default async function TutorStudentDetailPage({ params }: PageProps) {
               Aluno ainda não iniciou nenhuma trilha.
             </p>
           ) : (
-            data.progress.map((track) => {
+            data.progress.map((track: (typeof data.progress)[number]) => {
               const trackAccuracy = track.attempts > 0 ? Math.round((track.correct / track.attempts) * 100) : 0;
               return (
                 <div
