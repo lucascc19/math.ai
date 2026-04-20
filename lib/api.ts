@@ -3,6 +3,8 @@ import type {
   LessonDraftInput,
   LessonPatchInput,
   LoginInput,
+  PasswordResetConfirmInput,
+  PasswordResetRequestInput,
   RegisterInput,
   SetRoleInput,
   SettingsInput,
@@ -70,6 +72,16 @@ export const api = {
       body: JSON.stringify(input)
     }),
   logoutAll: () => request<{ ok: true }>("/api/auth/logout-all", { method: "POST" }),
+  requestPasswordReset: (input: PasswordResetRequestInput) =>
+    request<{ ok: true }>("/api/auth/password-reset/request", {
+      method: "POST",
+      body: JSON.stringify(input)
+    }),
+  confirmPasswordReset: (input: PasswordResetConfirmInput) =>
+    request<{ ok: true }>("/api/auth/password-reset/confirm", {
+      method: "POST",
+      body: JSON.stringify(input)
+    }),
   admin: {
     listUsers: (filters: { role?: Role; active?: boolean } = {}) => {
       const params = new URLSearchParams();

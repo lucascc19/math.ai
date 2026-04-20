@@ -67,6 +67,15 @@ export const trackDraftSchema = z.object({
 
 export const trackPatchSchema = trackDraftSchema.partial();
 
+export const passwordResetRequestSchema = z.object({
+  email: z.string().email("Digite um e-mail valido.")
+});
+
+export const passwordResetConfirmSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8, "Use pelo menos 8 caracteres.")
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type SettingsInput = z.infer<typeof settingsSchema>;
@@ -78,3 +87,5 @@ export type LessonDraftInput = z.infer<typeof lessonDraftSchema>;
 export type LessonPatchInput = z.infer<typeof lessonPatchSchema>;
 export type TrackDraftInput = z.infer<typeof trackDraftSchema>;
 export type TrackPatchInput = z.infer<typeof trackPatchSchema>;
+export type PasswordResetRequestInput = z.infer<typeof passwordResetRequestSchema>;
+export type PasswordResetConfirmInput = z.infer<typeof passwordResetConfirmSchema>;

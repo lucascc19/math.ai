@@ -76,6 +76,14 @@ export function AuthForm(props: AuthFormProps) {
         <form className="grid gap-4" onSubmit={loginForm.handleSubmit((values) => loginMutation.mutate(values))}>
           <Input className="focus-ring" placeholder="E-mail" {...loginForm.register("email")} />
           <Input className="focus-ring" type="password" placeholder="Senha" {...loginForm.register("password")} />
+          <div className="flex justify-end">
+            <Link
+              className="text-sm font-semibold text-primary-40 hover:underline dark:text-primary-70"
+              href="/esqueci-senha"
+            >
+              Esqueci minha senha
+            </Link>
+          </div>
           <Button type="submit" disabled={loginMutation.isPending}>
             {loginMutation.isPending ? "Entrando..." : "Entrar"}
           </Button>

@@ -90,6 +90,15 @@ export function DashboardApp() {
     }
   });
 
+  const logoutAllMutation = useMutation({
+    mutationFn: api.logoutAll,
+    onSuccess: () => {
+      queryClient.clear();
+      router.push("/login");
+      router.refresh();
+    }
+  });
+
   const settingsMutation = useMutation({
     mutationFn: api.updateSettings,
     onSuccess: (response) => {
@@ -208,6 +217,18 @@ export function DashboardApp() {
               <Button type="button" variant="secondary" onClick={() => logoutMutation.mutate()}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Sair
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                disabled={logoutAllMutation.isPending}
+                onClick={() => {
+                  if (confirm("Encerrar todas as sessões ativas em outros dispositivos?")) {
+                    logoutAllMutation.mutate();
+                  }
+                }}
+              >
+                Sair de todos os dispositivos
               </Button>
             </div>
           </Card>
