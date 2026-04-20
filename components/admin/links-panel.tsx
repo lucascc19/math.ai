@@ -6,6 +6,7 @@ import { Link2, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api, type AdminUser, type TutorLinkFull } from "@/lib/api";
 
 type Props = {
@@ -136,21 +137,22 @@ function SelectField({
   return (
     <label className="grid gap-1 text-sm">
       <span className="font-medium text-neutral-10/70 dark:text-neutral-80">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="focus-ring rounded-2xl border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-10 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
-      >
-        {options.length === 0 ? (
-          <option value="">Nenhum disponível</option>
-        ) : (
-          options.map((opt) => (
-            <option key={opt.id} value={opt.id}>
-              {opt.name} — {opt.email}
-            </option>
-          ))
-        )}
-      </select>
+      <Select value={value || "__none__"} onValueChange={(nextValue) => onChange(nextValue === "__none__" ? "" : nextValue)}>
+        <SelectTrigger>
+          <SelectValue placeholder={options.length === 0 ? "Nenhum disponivel" : `Selecione ${label.toLowerCase()}`} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.length === 0 ? (
+            <SelectItem value="__none__">Nenhum disponivel</SelectItem>
+          ) : (
+            options.map((opt) => (
+              <SelectItem key={opt.id} value={opt.id}>
+                {opt.name} - {opt.email}
+              </SelectItem>
+            ))
+          )}
+        </SelectContent>
+      </Select>
     </label>
   );
 }

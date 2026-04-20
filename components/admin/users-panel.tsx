@@ -10,6 +10,7 @@ import { CreateInvitationForm } from "@/components/admin/invitations-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { api, type AdminUser } from "@/lib/api";
 
 type Filters = { role?: Role; active?: boolean };
@@ -132,20 +133,23 @@ function FilterSelect({
   onChange: (v: string) => void;
   options: { value: string; label: string }[];
 }) {
+  const normalizedValue = value || "__all__";
+
   return (
     <label className="flex items-center gap-2 text-sm">
       <span className="font-medium text-neutral-10/70 dark:text-neutral-80">{label}:</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="focus-ring rounded-full border border-black/10 bg-white px-3 py-1.5 text-sm text-neutral-10 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+      <Select value={normalizedValue} onValueChange={(nextValue) => onChange(nextValue === "__all__" ? "" : nextValue)}>
+        <SelectTrigger className="h-10 w-[180px] rounded-full bg-white px-3 py-1.5 text-sm dark:bg-neutral-20/60">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((opt) => (
+            <SelectItem key={opt.value || "__all__"} value={opt.value || "__all__"}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </label>
   );
 }
@@ -189,16 +193,20 @@ function UserRow({ user }: { user: AdminUser }) {
         )}
       </div>
       <div className="flex items-center gap-2">
-        <select
+        <Select
           value={user.role}
           disabled={busy}
-          onChange={(e) => roleMutation.mutate(e.target.value as Role)}
-          className="focus-ring rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-10 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
+          onValueChange={(nextRole) => roleMutation.mutate(nextRole as Role)}
         >
-          <option value={Role.STUDENT}>Aluno</option>
-          <option value={Role.TUTOR}>Tutor</option>
-          <option value={Role.ADMIN}>Admin</option>
-        </select>
+          <SelectTrigger className="h-9 w-[120px] rounded-full bg-white px-3 py-1.5 text-xs font-semibold dark:bg-neutral-20/60">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={Role.STUDENT}>Aluno</SelectItem>
+            <SelectItem value={Role.TUTOR}>Tutor</SelectItem>
+            <SelectItem value={Role.ADMIN}>Admin</SelectItem>
+          </SelectContent>
+        </Select>
         <button
           type="button"
           disabled={busy}

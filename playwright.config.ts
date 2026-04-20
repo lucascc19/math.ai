@@ -6,7 +6,7 @@ export default defineConfig({
     baseURL: "http://127.0.0.1:3000"
   },
   webServer: {
-    command: "pnpm dev",
+    command: process.platform === "win32" ? "npm.cmd run dev" : "npm run dev",
     url: "http://127.0.0.1:3000",
     reuseExistingServer: true
   }

@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ROLE_LABEL: Record<string, string> = {
   STUDENT: "Aluno",
@@ -295,28 +296,36 @@ export function CreateInvitationForm({
         <div className="grid gap-3 md:grid-cols-2">
           <Input type="email" placeholder="E-mail do convidado" {...form.register("email")} />
           {showRoleSelect && (
-            <select
-              value={selectedRole}
-              onChange={(event) => setSelectedRole(event.target.value)}
-              className="focus-ring rounded-2xl border border-black/10 bg-white px-3 py-2 text-sm text-neutral-10 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
-            >
-              <option value="STUDENT">Aluno</option>
-              <option value="TUTOR">Tutor</option>
-              <option value="ADMIN">Admin</option>
-            </select>
+            <Select value={selectedRole} onValueChange={setSelectedRole}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="STUDENT">Aluno</SelectItem>
+                <SelectItem value="TUTOR">Tutor</SelectItem>
+                <SelectItem value="ADMIN">Admin</SelectItem>
+              </SelectContent>
+            </Select>
           )}
           {selectedRole === "STUDENT" && tutors.length > 0 && (
-            <select
-              {...form.register("tutorId")}
-              className="focus-ring rounded-2xl border border-black/10 bg-white px-3 py-2 text-sm text-neutral-10 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
+            <Select
+              value={form.watch("tutorId") || "__none__"}
+              onValueChange={(nextValue) =>
+                form.setValue("tutorId", nextValue === "__none__" ? "" : nextValue, { shouldDirty: true })
+              }
             >
-              <option value="">Sem tutor vinculado</option>
-              {tutors.map((tutor) => (
-                <option key={tutor.id} value={tutor.id}>
-                  {tutor.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Sem tutor vinculado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem tutor vinculado</SelectItem>
+                {tutors.map((tutor) => (
+                  <SelectItem key={tutor.id} value={tutor.id}>
+                    {tutor.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -343,20 +352,23 @@ function FilterSelect({
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
 }) {
+  const normalizedValue = value || "__all__";
+
   return (
     <label className="flex items-center gap-2 text-sm">
       <span className="font-medium text-neutral-10/70 dark:text-neutral-80">{label}:</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="focus-ring rounded-full border border-black/10 bg-white px-3 py-1.5 text-sm text-neutral-10 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <Select value={normalizedValue} onValueChange={(nextValue) => onChange(nextValue === "__all__" ? "" : nextValue)}>
+        <SelectTrigger className="h-10 w-[180px] rounded-full bg-white px-3 py-1.5 text-sm dark:bg-neutral-20/60">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option.value || "__all__"} value={option.value || "__all__"}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </label>
   );
 }
