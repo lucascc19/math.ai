@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { Role } from "@prisma/client";
 import { ArrowLeft } from "lucide-react";
 import { requirePageRole } from "@/lib/server/guards";
@@ -23,6 +24,9 @@ export default async function TutorLayout({ children }: { children: React.ReactN
               <nav className="flex flex-wrap items-center gap-4 text-sm font-medium text-neutral-10/70 dark:text-neutral-80">
                 <Link className="hover:text-primary-40 dark:hover:text-primary-70" href="/tutor/alunos">
                   Alunos
+                </Link>
+                <Link className="hover:text-primary-40 dark:hover:text-primary-70" href={"/tutor/convites" as Route}>
+                  Convites
                 </Link>
               </nav>
             </div>

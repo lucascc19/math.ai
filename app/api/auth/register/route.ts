@@ -1,25 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { registerSchema } from "@/lib/schemas";
-import { registerUser } from "@/lib/server/app-data";
-import { checkRateLimit, rateLimitResponse } from "@/lib/server/rate-limit";
+import { NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-  const rate = checkRateLimit(request, { key: "auth:register", limit: 3, windowMs: 60 * 60_000 });
-  if (!rate.allowed) return rateLimitResponse(rate.retryAfter);
-
-  const payload = await request.json();
-  const parsed = registerSchema.safeParse(payload);
-
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
-  }
-
-  try {
-    return NextResponse.json(await registerUser(parsed.data));
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erro inesperado." },
-      { status: 400 }
-    );
-  }
+export async function POST() {
+  return NextResponse.json(
+    {
+      error: "Cadastro publico desativado. O acesso a plataforma e liberado apenas por convite."
+    },
+    { status: 403 }
+  );
 }

@@ -1,19 +1,12 @@
 import { cookies } from "next/headers";
-import { randomBytes, scryptSync, timingSafeEqual, createHash } from "node:crypto";
+import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/server/prisma";
+import { hashToken, generateOpaqueToken } from "@/lib/server/token-hash";
 
 const SESSION_COOKIE_NAME = "mathai_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const SCRYPT_KEY_LENGTH = 64;
 const prismaAuth = prisma as any;
-
-function getAuthSecret() {
-  return process.env.AUTH_SECRET ?? "dev-auth-secret-change-me";
-}
-
-function hashValue(value: string) {
-  return createHash("sha256").update(`${getAuthSecret()}:${value}`).digest("hex");
-}
 
 export function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -70,12 +63,12 @@ export async function initializeUserData(userId: string) {
 }
 
 export async function createSession(userId: string) {
-  const token = randomBytes(32).toString("hex");
+  const token = generateOpaqueToken();
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
 
   await prismaAuth.session.create({
     data: {
-      tokenHash: hashValue(token),
+      tokenHash: hashToken(token),
       userId,
       expiresAt
     }
@@ -114,7 +107,7 @@ export async function getCurrentSession() {
 
   const session = await prismaAuth.session.findUnique({
     where: {
-      tokenHash: hashValue(token)
+      tokenHash: hashToken(token)
     },
     include: {
       user: {
@@ -185,7 +178,7 @@ export async function revokeCurrentSession() {
   if (token) {
     await prismaAuth.session.deleteMany({
       where: {
-        tokenHash: hashValue(token)
+        tokenHash: hashToken(token)
       }
     });
   }

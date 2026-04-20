@@ -1,18 +1,16 @@
 "use client";
 
+import Link from "next/link";
+import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
 import { Role } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, ShieldCheck, UserCheck, UserX } from "lucide-react";
+import { ShieldCheck, UserCheck, UserPlus, UserX } from "lucide-react";
+import { CreateInvitationForm } from "@/components/admin/invitations-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { api, type AdminUser } from "@/lib/api";
-import { createTutorSchema, type CreateTutorInput } from "@/lib/schemas";
 
 type Filters = { role?: Role; active?: boolean };
 
@@ -32,7 +30,6 @@ export function UsersPanel({ initialUsers, filters }: { initialUsers: AdminUser[
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const [creatingTutor, setCreatingTutor] = useState(false);
 
   const queryKey = ["admin", "users", filters] as const;
 
@@ -41,6 +38,8 @@ export function UsersPanel({ initialUsers, filters }: { initialUsers: AdminUser[
     queryFn: () => api.admin.listUsers(filters).then((r) => r.users),
     initialData: initialUsers
   });
+
+  const tutors = users.filter((user) => user.role === Role.TUTOR && user.active);
 
   function updateFilter(key: "role" | "active", value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -53,25 +52,26 @@ export function UsersPanel({ initialUsers, filters }: { initialUsers: AdminUser[
     <div className="grid gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="grid gap-2">
-          <Badge variant="tertiary">Usuários</Badge>
+          <Badge variant="tertiary">Usuarios</Badge>
           <h1 className="text-3xl font-bold text-neutral-10 dark:text-neutral-95 md:text-4xl">
             Gerenciar contas da plataforma
           </h1>
         </div>
-        <Button onClick={() => setCreatingTutor((v) => !v)}>
-          <Plus className="mr-2 h-4 w-4" />
-          {creatingTutor ? "Fechar" : "Criar tutor"}
+        <Button asChild>
+          <Link href={"/admin/convites" as Route}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Abrir painel de convites
+          </Link>
         </Button>
       </div>
 
-      {creatingTutor && (
-        <CreateTutorForm
-          onSuccess={() => {
-            setCreatingTutor(false);
-            queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
-          }}
-        />
-      )}
+      <CreateInvitationForm
+        tutors={tutors}
+        showRoleSelect
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["admin", "invitations"] });
+        }}
+      />
 
       <Card className="grid gap-4 rounded-[28px] border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
         <div className="flex flex-wrap items-center gap-3">
@@ -97,14 +97,14 @@ export function UsersPanel({ initialUsers, filters }: { initialUsers: AdminUser[
             ]}
           />
           <span className="ml-auto text-sm text-neutral-10/65 dark:text-neutral-80">
-            {users.length} {users.length === 1 ? "usuário" : "usuários"}
+            {users.length} {users.length === 1 ? "usuario" : "usuarios"}
           </span>
         </div>
 
         <div className="grid gap-3">
           {users.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-black/10 bg-white/40 p-6 text-center text-sm text-neutral-10/70 dark:border-white/15 dark:bg-neutral-20/40 dark:text-neutral-80">
-              Nenhum usuário encontrado com esses filtros.
+              Nenhum usuario encontrado com esses filtros.
             </p>
           ) : (
             users.map((user) => <UserRow key={user.id} user={user} />)
@@ -209,48 +209,5 @@ function UserRow({ user }: { user: AdminUser }) {
         </p>
       )}
     </div>
-  );
-}
-
-function CreateTutorForm({ onSuccess }: { onSuccess: () => void }) {
-  const form = useForm<CreateTutorInput>({
-    resolver: zodResolver(createTutorSchema),
-    defaultValues: { name: "", email: "", password: "" }
-  });
-
-  const mutation = useMutation({
-    mutationFn: api.admin.createTutor,
-    onSuccess: () => {
-      form.reset();
-      onSuccess();
-    }
-  });
-
-  return (
-    <Card className="grid gap-4 rounded-[28px] border border-primary-60/20 bg-primary-95 p-6 shadow-soft dark:border-primary-60/30 dark:bg-primary-20/40 md:p-8">
-      <div className="grid gap-1">
-        <Badge variant="primary">Novo tutor</Badge>
-        <h2 className="text-xl font-bold text-neutral-10 dark:text-neutral-95">Criar conta de tutor</h2>
-        <p className="text-sm text-neutral-10/70 dark:text-neutral-80">
-          A conta é criada já ativa. O tutor poderá fazer login com essas credenciais.
-        </p>
-      </div>
-      <form
-        className="grid gap-3 md:grid-cols-3"
-        onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
-      >
-        <Input placeholder="Nome completo" {...form.register("name")} />
-        <Input type="email" placeholder="E-mail" {...form.register("email")} />
-        <Input type="password" placeholder="Senha inicial" {...form.register("password")} />
-        <div className="md:col-span-3 flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={mutation.isPending}>
-            {mutation.isPending ? "Criando..." : "Criar tutor"}
-          </Button>
-          {mutation.error && (
-            <span className="text-sm text-tertiary-30 dark:text-tertiary-70">{mutation.error.message}</span>
-          )}
-        </div>
-      </form>
-    </Card>
   );
 }

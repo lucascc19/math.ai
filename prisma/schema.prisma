@@ -20,21 +20,44 @@ enum ContentStatus {
 }
 
 model User {
-  id             String                 @id @default(cuid())
-  name           String
-  email          String                 @unique
-  passwordHash   String
-  role           Role
-  active         Boolean                @default(true)
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
-  accessibility  AccessibilityProfile?
-  attempts       Attempt[]
-  sessions       Session[]
-  trackProgress  TrackProgress[]
-  tutorLinks     TutorStudent[]         @relation("TutorRelation")
-  studentLinks   TutorStudent[]         @relation("StudentRelation")
-  passwordResets PasswordResetToken[]
+  id               String                 @id @default(cuid())
+  name             String
+  email            String                 @unique
+  passwordHash     String
+  role             Role
+  active           Boolean                @default(true)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  accessibility    AccessibilityProfile?
+  attempts         Attempt[]
+  sessions         Session[]
+  trackProgress    TrackProgress[]
+  tutorLinks       TutorStudent[]         @relation("TutorRelation")
+  studentLinks     TutorStudent[]         @relation("StudentRelation")
+  passwordResets   PasswordResetToken[]
+  sentInvitations  Invitation[]           @relation("InvitationCreator")
+  tutorInvitations Invitation[]           @relation("InvitationTutor")
+}
+
+model Invitation {
+  id              String    @id @default(cuid())
+  email           String
+  role            Role
+  tokenHash       String    @unique
+  invitedByUserId String
+  tutorId         String?
+  expiresAt       DateTime
+  usedAt          DateTime?
+  revokedAt       DateTime?
+  createdAt       DateTime  @default(now())
+
+  invitedBy       User      @relation("InvitationCreator", fields: [invitedByUserId], references: [id], onDelete: Cascade)
+  tutor           User?     @relation("InvitationTutor", fields: [tutorId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([expiresAt])
+  @@index([invitedByUserId])
+  @@index([tutorId])
 }
 
 model PasswordResetToken {

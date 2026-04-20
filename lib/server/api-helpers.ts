@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ForbiddenError, NotFoundError } from "@/lib/server/permissions";
+import { InvitationExpiredError, InvitationAlreadyUsedError, InvitationRevokedError } from "@/lib/server/invitations";
 
 export function handleError(error: unknown) {
   if (error instanceof ForbiddenError) {
@@ -7,6 +8,13 @@ export function handleError(error: unknown) {
   }
   if (error instanceof NotFoundError) {
     return NextResponse.json({ error: error.message }, { status: 404 });
+  }
+  if (
+    error instanceof InvitationExpiredError ||
+    error instanceof InvitationAlreadyUsedError ||
+    error instanceof InvitationRevokedError
+  ) {
+    return NextResponse.json({ error: error.message }, { status: error.status });
   }
   if (error instanceof Error && error.message === "AUTHENTICATION_REQUIRED") {
     return NextResponse.json({ error: "Autenticação requerida." }, { status: 401 });

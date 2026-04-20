@@ -1,4 +1,6 @@
 import type {
+  AcceptInvitationInput,
+  CreateInvitationInput,
   CreateTutorInput,
   LessonDraftInput,
   LessonPatchInput,
@@ -14,6 +16,7 @@ import type {
   TutorLinkInput
 } from "@/lib/schemas";
 import type { ContentStatus, Role } from "@prisma/client";
+import type { InvitationStatus } from "@/lib/server/invitations";
 
 async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {
@@ -162,6 +165,29 @@ export const api = {
     listStudents: () => request<{ students: AdminUser[] }>("/api/tutor/students"),
     getStudent: (studentId: string) => request<TutorStudentProgress>(`/api/tutor/students/${studentId}`),
     metrics: () => request<TutorMetrics>("/api/tutor/metrics")
+  },
+  invitations: {
+    create: (input: CreateInvitationInput) =>
+      request<{ ok: true; invitation: { token: string; email: string; role: Role; expiresAt: string; inviteUrl: string } }>(
+        "/api/invitations",
+        { method: "POST", body: JSON.stringify(input) }
+      ),
+    list: (filters: { status?: string; role?: Role } = {}) => {
+      const params = new URLSearchParams();
+      if (filters.status) params.set("status", filters.status);
+      if (filters.role) params.set("role", filters.role);
+      const query = params.toString();
+      return request<{ invitations: InvitationItem[] }>(`/api/invitations${query ? `?${query}` : ""}`);
+    },
+    resolve: (token: string) =>
+      request<{ invitation: InvitationPublic }>(`/api/invitations/resolve?token=${encodeURIComponent(token)}`),
+    accept: (input: AcceptInvitationInput) =>
+      request<{ ok: true; user: { id: string; name: string; email: string; role: Role } }>(
+        "/api/invitations/accept",
+        { method: "POST", body: JSON.stringify(input) }
+      ),
+    revoke: (invitationId: string) =>
+      request<{ ok: true }>(`/api/invitations/${invitationId}/revoke`, { method: "POST" })
   }
 };
 
@@ -244,3 +270,28 @@ export type LoginResponse = Awaited<ReturnType<typeof import("@/lib/server/app-d
 export type RegisterResponse = Awaited<ReturnType<typeof import("@/lib/server/app-data").registerUser>>;
 export type SettingsResponse = Awaited<ReturnType<typeof import("@/lib/server/app-data").updateAccessibilitySettings>>;
 export type AnswerResponse = Awaited<ReturnType<typeof import("@/lib/server/app-data").submitAnswer>>;
+
+export type InvitationItem = {
+  id: string;
+  email: string;
+  role: Role;
+  expiresAt: string;
+  usedAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+  status: InvitationStatus;
+  invitedBy: { id: string; name: string; email: string };
+  tutor: { id: string; name: string; email: string } | null;
+};
+
+export type InvitationPublic = {
+  id: string;
+  email: string;
+  role: Role;
+  expiresAt: string;
+  usedAt: string | null;
+  revokedAt: string | null;
+  createdAt: string;
+  status: InvitationStatus;
+  tutor: { id: string; name: string } | null;
+};

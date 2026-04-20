@@ -26,7 +26,12 @@ export type Action =
   | "user.role.set"
   | "user.deactivate"
   | "user.edit"
-  | "tutorLink.manage";
+  | "tutorLink.manage"
+  | "invite.create.admin"
+  | "invite.create.tutor"
+  | "invite.create.student"
+  | "invite.list"
+  | "invite.revoke";
 
 const rolePermissions: Record<Role, ReadonlySet<Action>> = {
   STUDENT: new Set<Action>(["lesson.attempt", "profile.edit.self"]),
@@ -39,7 +44,10 @@ const rolePermissions: Record<Role, ReadonlySet<Action>> = {
     "lesson.draft.create",
     "lesson.draft.edit",
     "track.draft.create",
-    "track.draft.edit"
+    "track.draft.edit",
+    "invite.create.student",
+    "invite.list",
+    "invite.revoke"
   ]),
   ADMIN: new Set<Action>([
     "lesson.attempt",
@@ -63,7 +71,12 @@ const rolePermissions: Record<Role, ReadonlySet<Action>> = {
     "user.role.set",
     "user.deactivate",
     "user.edit",
-    "tutorLink.manage"
+    "tutorLink.manage",
+    "invite.create.admin",
+    "invite.create.tutor",
+    "invite.create.student",
+    "invite.list",
+    "invite.revoke"
   ])
 };
 

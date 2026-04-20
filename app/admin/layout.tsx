@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { Role } from "@prisma/client";
 import { ArrowLeft } from "lucide-react";
 import { requirePageRole } from "@/lib/server/guards";
@@ -22,13 +23,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               </Link>
               <nav className="flex flex-wrap items-center gap-4 text-sm font-medium text-neutral-10/70 dark:text-neutral-80">
                 <Link className="hover:text-primary-40 dark:hover:text-primary-70" href="/admin/usuarios">
-                  Usuários
+                  Usuarios
+                </Link>
+                <Link className="hover:text-primary-40 dark:hover:text-primary-70" href={"/admin/convites" as Route}>
+                  Convites
                 </Link>
                 <Link className="hover:text-primary-40 dark:hover:text-primary-70" href="/admin/vinculos">
-                  Vínculos
+                  Vinculos
                 </Link>
                 <Link className="hover:text-primary-40 dark:hover:text-primary-70" href="/admin/conteudo">
-                  Conteúdo
+                  Conteudo
                 </Link>
               </nav>
             </div>

@@ -89,3 +89,21 @@ export type TrackDraftInput = z.infer<typeof trackDraftSchema>;
 export type TrackPatchInput = z.infer<typeof trackPatchSchema>;
 export type PasswordResetRequestInput = z.infer<typeof passwordResetRequestSchema>;
 export type PasswordResetConfirmInput = z.infer<typeof passwordResetConfirmSchema>;
+
+export const invitationRoleSchema = z.enum(["STUDENT", "TUTOR", "ADMIN"]);
+
+export const createInvitationSchema = z.object({
+  email: z.string().email("Digite um e-mail válido."),
+  role: invitationRoleSchema,
+  name: z.string().min(2).optional(),
+  tutorId: z.string().optional()
+});
+
+export const acceptInvitationSchema = z.object({
+  token: z.string().min(1),
+  name: z.string().min(2, "Informe pelo menos 2 caracteres."),
+  password: z.string().min(8, "Use pelo menos 8 caracteres.")
+});
+
+export type CreateInvitationInput = z.infer<typeof createInvitationSchema>;
+export type AcceptInvitationInput = z.infer<typeof acceptInvitationSchema>;
