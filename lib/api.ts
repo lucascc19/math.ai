@@ -1,13 +1,17 @@
 import type {
   CreateTutorInput,
+  LessonDraftInput,
+  LessonPatchInput,
   LoginInput,
   RegisterInput,
   SetRoleInput,
   SettingsInput,
   SubmitAnswerInput,
+  TrackDraftInput,
+  TrackPatchInput,
   TutorLinkInput
 } from "@/lib/schemas";
-import type { Role } from "@prisma/client";
+import type { ContentStatus, Role } from "@prisma/client";
 
 async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {
@@ -99,7 +103,48 @@ export const api = {
         method: "DELETE",
         body: JSON.stringify(input)
       }),
-    listTutorLinks: () => request<{ links: TutorLinkFull[] }>("/api/admin/tutor-links/list")
+    listTutorLinks: () => request<{ links: TutorLinkFull[] }>("/api/admin/tutor-links/list"),
+    listTracks: () => request<{ tracks: AdminTrack[] }>("/api/admin/content/tracks"),
+    getTrack: (trackId: string) => request<{ track: AdminTrackDetail }>(`/api/admin/content/tracks/${trackId}`),
+    createTrack: (input: TrackDraftInput) =>
+      request<{ track: AdminTrackDetail }>("/api/admin/content/tracks", {
+        method: "POST",
+        body: JSON.stringify(input)
+      }),
+    updateTrack: (trackId: string, input: TrackPatchInput) =>
+      request<{ track: AdminTrackDetail }>(`/api/admin/content/tracks/${trackId}`, {
+        method: "PATCH",
+        body: JSON.stringify(input)
+      }),
+    deleteTrack: (trackId: string) =>
+      request<{ ok: true }>(`/api/admin/content/tracks/${trackId}`, { method: "DELETE" }),
+    setTrackPublish: (trackId: string, publish: boolean) =>
+      request<{ track: AdminTrackDetail }>(`/api/admin/content/tracks/${trackId}/publish`, {
+        method: "POST",
+        body: JSON.stringify({ publish })
+      }),
+    reorderLessons: (trackId: string, orderedIds: string[]) =>
+      request<{ ok: true }>(`/api/admin/content/tracks/${trackId}/reorder`, {
+        method: "POST",
+        body: JSON.stringify({ orderedIds })
+      }),
+    createLesson: (input: LessonDraftInput) =>
+      request<{ lesson: AdminLesson }>("/api/admin/content/lessons", {
+        method: "POST",
+        body: JSON.stringify(input)
+      }),
+    updateLesson: (lessonId: string, input: LessonPatchInput) =>
+      request<{ lesson: AdminLesson }>(`/api/admin/content/lessons/${lessonId}`, {
+        method: "PATCH",
+        body: JSON.stringify(input)
+      }),
+    deleteLesson: (lessonId: string) =>
+      request<{ ok: true }>(`/api/admin/content/lessons/${lessonId}`, { method: "DELETE" }),
+    setLessonPublish: (lessonId: string, publish: boolean) =>
+      request<{ lesson: AdminLesson }>(`/api/admin/content/lessons/${lessonId}/publish`, {
+        method: "POST",
+        body: JSON.stringify({ publish })
+      })
   },
   tutor: {
     listStudents: () => request<{ students: AdminUser[] }>("/api/tutor/students"),
@@ -135,6 +180,35 @@ export type TutorMetrics = {
   studentsTracked: number;
   attempts: number;
   correct: number;
+};
+
+export type AdminLesson = {
+  id: string;
+  skillTrackId: string;
+  title: string;
+  prompt: string;
+  story: string;
+  explanation: string;
+  answer: number;
+  level: string;
+  goal: string;
+  tip: string;
+  orderIndex: number;
+  status: ContentStatus;
+};
+
+export type AdminTrack = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  estimatedTime: string;
+  status: ContentStatus;
+  lessons: Array<{ id: string; status: ContentStatus }>;
+};
+
+export type AdminTrackDetail = Omit<AdminTrack, "lessons"> & {
+  lessons: AdminLesson[];
 };
 
 export type AdminUser = {

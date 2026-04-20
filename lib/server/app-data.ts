@@ -158,8 +158,10 @@ export async function getDashboardData(userId?: string | null) {
   await initializeUserData(user.id);
 
   const dbTracks = await prismaDb.skillTrack.findMany({
+    where: { status: "PUBLISHED" },
     include: {
       lessons: {
+        where: { status: "PUBLISHED" },
         orderBy: { orderIndex: "asc" }
       },
       progress: {

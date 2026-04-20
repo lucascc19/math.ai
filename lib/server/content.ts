@@ -3,6 +3,7 @@ import { prisma } from "@/lib/server/prisma";
 import {
   assertCanEditLesson,
   assertCanEditTrack,
+  NotFoundError,
   requireActor
 } from "@/lib/server/permissions";
 import type {
@@ -13,6 +14,39 @@ import type {
 } from "@/lib/schemas";
 
 const prismaDb = prisma as any;
+
+export async function listTracksForAdmin() {
+  await requireActor("track.draft.edit");
+
+  return prismaDb.skillTrack.findMany({
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      description: true,
+      estimatedTime: true,
+      status: true,
+      lessons: {
+        select: { id: true, status: true }
+      }
+    }
+  });
+}
+
+export async function getTrackWithLessons(trackId: string) {
+  await requireActor("track.draft.edit");
+
+  const track = await prismaDb.skillTrack.findUnique({
+    where: { id: trackId },
+    include: {
+      lessons: { orderBy: { orderIndex: "asc" } }
+    }
+  });
+
+  if (!track) throw new NotFoundError("Trilha não encontrada.");
+  return track;
+}
 
 export async function createDraftTrack(input: TrackDraftInput) {
   await requireActor("track.draft.create");
