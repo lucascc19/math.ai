@@ -1,13 +1,11 @@
 import type {
   AcceptInvitationInput,
   CreateInvitationInput,
-  CreateTutorInput,
   LessonDraftInput,
   LessonPatchInput,
   LoginInput,
   PasswordResetConfirmInput,
   PasswordResetRequestInput,
-  RegisterInput,
   SetRoleInput,
   SettingsInput,
   SubmitAnswerInput,
@@ -55,11 +53,6 @@ export const api = {
       method: "POST",
       body: JSON.stringify(input)
     }),
-  register: (input: RegisterInput) =>
-    request<RegisterResponse>("/api/auth/register", {
-      method: "POST",
-      body: JSON.stringify(input)
-    }),
   logout: () =>
     request<{ ok: true }>("/api/auth/logout", {
       method: "POST"
@@ -93,11 +86,6 @@ export const api = {
       const query = params.toString();
       return request<{ users: AdminUser[] }>(`/api/admin/users${query ? `?${query}` : ""}`);
     },
-    createTutor: (input: CreateTutorInput) =>
-      request<{ tutor: AdminUser }>("/api/admin/tutors", {
-        method: "POST",
-        body: JSON.stringify(input)
-      }),
     setUserRole: (userId: string, input: SetRoleInput) =>
       request<{ user: AdminUser }>(`/api/admin/users/${userId}/role`, {
         method: "PATCH",
@@ -267,7 +255,6 @@ export type TutorLink = {
 
 export type DashboardResponse = Awaited<ReturnType<typeof import("@/lib/server/app-data").getDashboardData>>;
 export type LoginResponse = Awaited<ReturnType<typeof import("@/lib/server/app-data").loginUser>>;
-export type RegisterResponse = Awaited<ReturnType<typeof import("@/lib/server/app-data").registerUser>>;
 export type SettingsResponse = Awaited<ReturnType<typeof import("@/lib/server/app-data").updateAccessibilitySettings>>;
 export type AnswerResponse = Awaited<ReturnType<typeof import("@/lib/server/app-data").submitAnswer>>;
 

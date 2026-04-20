@@ -1,13 +1,12 @@
 import { Role } from "@prisma/client";
 import { calculateAccuracy, updateProgress } from "@/lib/domain/progress";
 import { defaultSettings, getLessonMeta, getTrackMeta } from "@/lib/server/curriculum";
-import { createSession, hashPassword, initializeUserData, setSessionCookie, verifyPassword } from "@/lib/server/auth";
+import { createSession, initializeUserData, setSessionCookie, verifyPassword } from "@/lib/server/auth";
 import { prisma } from "@/lib/server/prisma";
-import type { LoginInput, RegisterInput, SettingsInput, SubmitAnswerInput } from "@/lib/schemas";
+import type { LoginInput, SettingsInput, SubmitAnswerInput } from "@/lib/schemas";
 
 export type DashboardData = Awaited<ReturnType<typeof getDashboardData>>;
 export type LoginResult = Awaited<ReturnType<typeof loginUser>>;
-export type RegisterResult = Awaited<ReturnType<typeof registerUser>>;
 export type SettingsResult = Awaited<ReturnType<typeof updateAccessibilitySettings>>;
 export type SubmitAnswerResult = Awaited<ReturnType<typeof submitAnswer>>;
 
@@ -257,33 +256,6 @@ export async function loginUser(input: LoginInput) {
   if (user.active === false) {
     throw new Error("Conta desativada. Entre em contato com a coordenação.");
   }
-
-  return createAuthenticatedResponse(user);
-}
-
-export async function registerUser(input: RegisterInput) {
-  const existingUser = await prismaDb.user.findUnique({
-    where: { email: input.email }
-  });
-
-  if (existingUser) {
-    throw new Error("Ja existe uma conta com este e-mail.");
-  }
-
-  const user = await prismaDb.user.create({
-    data: {
-      name: input.name,
-      email: input.email,
-      role: Role.STUDENT,
-      passwordHash: hashPassword(input.password),
-      accessibility: {
-        create: { ...defaultSettings }
-      }
-    },
-    include: {
-      accessibility: true
-    }
-  });
 
   return createAuthenticatedResponse(user);
 }

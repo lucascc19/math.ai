@@ -5,8 +5,13 @@ import { InvitationAcceptForm } from "@/components/invitation-accept-form";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export default async function ConvitePage({ params }: { params: { token: string } }) {
-  const invitation = await getInvitationByToken(params.token);
+type PageProps = {
+  params: Promise<{ token: string }>;
+};
+
+export default async function ConvitePage({ params }: PageProps) {
+  const { token } = await params;
+  const invitation = await getInvitationByToken(token);
 
   return (
     <main className="flex min-h-screen flex-col">
@@ -26,7 +31,7 @@ export default async function ConvitePage({ params }: { params: { token: string 
           {invitation?.status === "revoked" && <InvalidInvitationCard reason="revoked" />}
           {invitation?.status === "expired" && <InvalidInvitationCard reason="expired" />}
           {invitation?.status === "pending" && (
-            <InvitationAcceptForm token={params.token} invitation={invitation} />
+            <InvitationAcceptForm token={token} invitation={invitation} />
           )}
         </div>
       </div>

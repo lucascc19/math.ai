@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Clock, Copy, MailX, Plus, XCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { api, type InvitationItem } from "@/lib/api";
+import { createInvitationSchema, type CreateInvitationInput } from "@/lib/schemas";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { api, type InvitationItem } from "@/lib/api";
-import { createInvitationSchema, type CreateInvitationInput } from "@/lib/schemas";
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Pendente",
@@ -19,7 +19,7 @@ const STATUS_LABEL: Record<string, string> = {
   revoked: "Revogado"
 };
 
-type CreatedInvite = { token: string; email: string };
+type CreatedInvite = { token: string; email: string; inviteUrl: string };
 
 export function TutorInvitationsPanel({
   initialInvitations,
@@ -34,7 +34,7 @@ export function TutorInvitationsPanel({
 
   const { data: invitations = initialInvitations } = useQuery({
     queryKey: ["tutor", "invitations"],
-    queryFn: () => api.invitations.list().then((r) => r.invitations),
+    queryFn: () => api.invitations.list().then((response) => response.invitations),
     initialData: initialInvitations
   });
 
@@ -53,20 +53,24 @@ export function TutorInvitationsPanel({
             Convidar alunos
           </h1>
         </div>
-        <Button onClick={() => { setCreating((v) => !v); setLastCreated(null); }}>
+        <Button
+          onClick={() => {
+            setCreating((value) => !value);
+            setLastCreated(null);
+          }}
+        >
           <Plus className="mr-2 h-4 w-4" />
           {creating ? "Fechar" : "Novo convite"}
         </Button>
       </div>
 
-      {creating && (
-        <TutorCreateInvitationForm tutorId={tutorId} onSuccess={handleCreated} />
-      )}
+      {creating && <TutorCreateInvitationForm tutorId={tutorId} onSuccess={handleCreated} />}
 
       {lastCreated && (
         <InviteCreatedBanner
           token={lastCreated.token}
           email={lastCreated.email}
+          inviteUrl={lastCreated.inviteUrl}
           onDismiss={() => setLastCreated(null)}
         />
       )}
@@ -82,13 +86,13 @@ export function TutorInvitationsPanel({
         <div className="grid gap-3">
           {invitations.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-black/10 bg-white/40 p-6 text-center text-sm text-neutral-10/70 dark:border-white/15 dark:bg-neutral-20/40 dark:text-neutral-80">
-              Você ainda não enviou convites.
+              Voce ainda nao enviou convites.
             </p>
           ) : (
-            invitations.map((inv) => (
+            invitations.map((invitation) => (
               <TutorInvitationRow
-                key={inv.id}
-                invitation={inv}
+                key={invitation.id}
+                invitation={invitation}
                 onRevoked={() => queryClient.invalidateQueries({ queryKey: ["tutor", "invitations"] })}
               />
             ))
@@ -99,7 +103,13 @@ export function TutorInvitationsPanel({
   );
 }
 
-function TutorCreateInvitationForm({ tutorId, onSuccess }: { tutorId: string; onSuccess: (r: CreatedInvite) => void }) {
+function TutorCreateInvitationForm({
+  tutorId,
+  onSuccess
+}: {
+  tutorId: string;
+  onSuccess: (result: CreatedInvite) => void;
+}) {
   const [linkToSelf, setLinkToSelf] = useState(true);
 
   const form = useForm<CreateInvitationInput>({
@@ -110,8 +120,12 @@ function TutorCreateInvitationForm({ tutorId, onSuccess }: { tutorId: string; on
   const mutation = useMutation({
     mutationFn: api.invitations.create,
     onSuccess: (result) => {
-      form.reset();
-      onSuccess({ token: result.invitation.token, email: result.invitation.email });
+      form.reset({ email: "", role: "STUDENT", tutorId });
+      onSuccess({
+        token: result.invitation.token,
+        email: result.invitation.email,
+        inviteUrl: result.invitation.inviteUrl
+      });
     }
   });
 
@@ -121,7 +135,7 @@ function TutorCreateInvitationForm({ tutorId, onSuccess }: { tutorId: string; on
         <Badge variant="primary">Novo convite</Badge>
         <h2 className="text-xl font-bold text-neutral-10 dark:text-neutral-95">Convidar aluno</h2>
         <p className="text-sm text-neutral-10/70 dark:text-neutral-80">
-          A conta só é criada quando o aluno aceitar o convite.
+          A conta so e criada quando o aluno aceitar o convite.
         </p>
       </div>
       <form
@@ -139,7 +153,7 @@ function TutorCreateInvitationForm({ tutorId, onSuccess }: { tutorId: string; on
           <input
             type="checkbox"
             checked={linkToSelf}
-            onChange={(e) => setLinkToSelf(e.target.checked)}
+            onChange={(event) => setLinkToSelf(event.target.checked)}
             className="h-4 w-4 rounded"
           />
           Vincular como meu aluno ao aceitar o convite
@@ -157,12 +171,22 @@ function TutorCreateInvitationForm({ tutorId, onSuccess }: { tutorId: string; on
   );
 }
 
-function InviteCreatedBanner({ token, email, onDismiss }: { token: string; email: string; onDismiss: () => void }) {
+function InviteCreatedBanner({
+  token,
+  email,
+  inviteUrl,
+  onDismiss
+}: {
+  token: string;
+  email: string;
+  inviteUrl: string;
+  onDismiss: () => void;
+}) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? `${window.location.origin}/convite/${token}` : `/convite/${token}`;
+  const url = inviteUrl || (typeof window !== "undefined" ? `${window.location.origin}/convite/${token}` : `/convite/${token}`);
 
-  function copy() {
-    navigator.clipboard.writeText(url);
+  async function copy() {
+    await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -213,9 +237,7 @@ function TutorInvitationRow({ invitation, onRevoked }: { invitation: InvitationI
         <span className="truncate text-sm font-semibold text-neutral-10 dark:text-neutral-95">{invitation.email}</span>
         <span className="text-xs text-neutral-10/65 dark:text-neutral-80">
           {new Date(invitation.createdAt).toLocaleDateString("pt-BR")}
-          {invitation.status === "pending" && (
-            <> · expira em {new Date(invitation.expiresAt).toLocaleDateString("pt-BR")}</>
-          )}
+          {invitation.status === "pending" && <> · expira em {new Date(invitation.expiresAt).toLocaleDateString("pt-BR")}</>}
         </span>
       </div>
       <span
@@ -235,9 +257,7 @@ function TutorInvitationRow({ invitation, onRevoked }: { invitation: InvitationI
           Revogar
         </button>
       )}
-      {revokeMutation.error && (
-        <p className="w-full text-xs text-tertiary-30">{revokeMutation.error.message}</p>
-      )}
+      {revokeMutation.error && <p className="w-full text-xs text-tertiary-30">{revokeMutation.error.message}</p>}
     </div>
   );
 }

@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { loginSchema, registerSchema, settingsSchema, submitAnswerSchema } from "@/lib/schemas";
+import {
+  acceptInvitationSchema,
+  createInvitationSchema,
+  loginSchema,
+  settingsSchema,
+  submitAnswerSchema
+} from "@/lib/schemas";
 
 describe("zod schemas", () => {
   it("validates login", () => {
@@ -11,20 +17,20 @@ describe("zod schemas", () => {
     expect(result.success).toBe(true);
   });
 
-  it("validates register", () => {
-    const result = registerSchema.safeParse({
-      name: "Lucas",
+  it("validates invitation creation", () => {
+    const result = createInvitationSchema.safeParse({
       email: "lucas@example.com",
-      password: "segredo123"
+      role: "STUDENT",
+      tutorId: "tutor-1"
     });
 
     expect(result.success).toBe(true);
   });
 
   it("rejects short passwords", () => {
-    const result = registerSchema.safeParse({
+    const result = acceptInvitationSchema.safeParse({
       name: "Lucas",
-      email: "lucas@example.com",
+      token: "invite-token",
       password: "123"
     });
 

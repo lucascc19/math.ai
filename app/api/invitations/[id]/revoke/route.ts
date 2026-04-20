@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { revokeInvitation } from "@/lib/server/invitations";
 import { handleError } from "@/lib/server/api-helpers";
 
-export async function POST(_request: NextRequest, { params }: { params: { id: string } }) {
+type RouteContext = {
+  params: Promise<{ id: string }>;
+};
+
+export async function POST(_request: NextRequest, { params }: RouteContext) {
   try {
-    return NextResponse.json(await revokeInvitation(params.id));
+    const { id } = await params;
+    return NextResponse.json(await revokeInvitation(id));
   } catch (error) {
     return handleError(error);
   }

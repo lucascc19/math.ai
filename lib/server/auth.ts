@@ -1,12 +1,14 @@
 import { cookies } from "next/headers";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/server/prisma";
-import { hashToken, generateOpaqueToken } from "@/lib/server/token-hash";
+import { generateOpaqueToken, hashToken } from "@/lib/server/token-hash";
 
 const SESSION_COOKIE_NAME = "mathai_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 const SCRYPT_KEY_LENGTH = 64;
 const prismaAuth = prisma as any;
+
+type DbClient = typeof prismaAuth;
 
 export function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -31,15 +33,15 @@ export function verifyPassword(password: string, passwordHash: string) {
   return timingSafeEqual(incoming, storedBuffer);
 }
 
-export async function initializeUserData(userId: string) {
-  const tracks = await prismaAuth.skillTrack.findMany({
+export async function initializeUserData(userId: string, db: DbClient = prismaAuth) {
+  const tracks = await db.skillTrack.findMany({
     where: { status: "PUBLISHED" },
     select: { id: true }
   });
 
   await Promise.all(
     tracks.map((track: { id: string }) =>
-      prisma.trackProgress.upsert({
+      db.trackProgress.upsert({
         where: {
           userId_skillTrackId: {
             userId,
@@ -55,7 +57,7 @@ export async function initializeUserData(userId: string) {
     )
   );
 
-  await prisma.accessibilityProfile.upsert({
+  await db.accessibilityProfile.upsert({
     where: { userId },
     update: {},
     create: { userId }

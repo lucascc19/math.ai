@@ -26,7 +26,15 @@ const ROLE_BADGE_VARIANT: Record<Role, "primary" | "secondary" | "tertiary"> = {
   ADMIN: "tertiary"
 };
 
-export function UsersPanel({ initialUsers, filters }: { initialUsers: AdminUser[]; filters: Filters }) {
+export function UsersPanel({
+  initialUsers,
+  tutors,
+  filters
+}: {
+  initialUsers: AdminUser[];
+  tutors: AdminUser[];
+  filters: Filters;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
@@ -38,8 +46,6 @@ export function UsersPanel({ initialUsers, filters }: { initialUsers: AdminUser[
     queryFn: () => api.admin.listUsers(filters).then((r) => r.users),
     initialData: initialUsers
   });
-
-  const tutors = users.filter((user) => user.role === Role.TUTOR && user.active);
 
   function updateFilter(key: "role" | "active", value: string) {
     const params = new URLSearchParams(searchParams.toString());

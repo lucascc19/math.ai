@@ -3,17 +3,22 @@
 import { useState } from "react";
 import { Role } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, Clock, Copy, Link2, MailX, Plus, XCircle } from "lucide-react";
+import { Check, Clock, Copy, MailX, Plus, XCircle } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { api, type AdminUser, type InvitationItem } from "@/lib/api";
+import { createInvitationSchema, type CreateInvitationInput } from "@/lib/schemas";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { api, type AdminUser, type InvitationItem } from "@/lib/api";
-import { createInvitationSchema, type CreateInvitationInput } from "@/lib/schemas";
 
-const ROLE_LABEL: Record<string, string> = { STUDENT: "Aluno", TUTOR: "Tutor", ADMIN: "Admin" };
+const ROLE_LABEL: Record<string, string> = {
+  STUDENT: "Aluno",
+  TUTOR: "Tutor",
+  ADMIN: "Admin"
+};
+
 const STATUS_LABEL: Record<string, string> = {
   pending: "Pendente",
   used: "Aceito",
@@ -22,7 +27,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 type Filters = { status?: string; role?: Role };
-type CreatedInvite = { token: string; email: string };
+type CreatedInvite = { token: string; email: string; inviteUrl: string };
 
 export function AdminInvitationsPanel({
   initialInvitations,
@@ -40,7 +45,7 @@ export function AdminInvitationsPanel({
 
   const { data: invitations = initialInvitations } = useQuery({
     queryKey,
-    queryFn: () => api.invitations.list(filters).then((r) => r.invitations),
+    queryFn: () => api.invitations.list(filters).then((response) => response.invitations),
     initialData: initialInvitations
   });
 
@@ -59,24 +64,24 @@ export function AdminInvitationsPanel({
             Gerenciar convites
           </h1>
         </div>
-        <Button onClick={() => { setCreating((v) => !v); setLastCreated(null); }}>
+        <Button
+          onClick={() => {
+            setCreating((value) => !value);
+            setLastCreated(null);
+          }}
+        >
           <Plus className="mr-2 h-4 w-4" />
           {creating ? "Fechar" : "Novo convite"}
         </Button>
       </div>
 
-      {creating && (
-        <CreateInvitationForm
-          tutors={tutors}
-          showRoleSelect
-          onSuccess={handleCreated}
-        />
-      )}
+      {creating && <CreateInvitationForm tutors={tutors} showRoleSelect onSuccess={handleCreated} />}
 
       {lastCreated && (
         <InviteCreatedBanner
           token={lastCreated.token}
           email={lastCreated.email}
+          inviteUrl={lastCreated.inviteUrl}
           onDismiss={() => setLastCreated(null)}
         />
       )}
@@ -86,7 +91,7 @@ export function AdminInvitationsPanel({
           <FilterSelect
             label="Status"
             value={filters.status ?? ""}
-            onChange={(v) => setFilters((f) => ({ ...f, status: v || undefined }))}
+            onChange={(value) => setFilters((current) => ({ ...current, status: value || undefined }))}
             options={[
               { value: "", label: "Todos" },
               { value: "pending", label: "Pendentes" },
@@ -98,7 +103,7 @@ export function AdminInvitationsPanel({
           <FilterSelect
             label="Papel"
             value={filters.role ?? ""}
-            onChange={(v) => setFilters((f) => ({ ...f, role: (v as Role) || undefined }))}
+            onChange={(value) => setFilters((current) => ({ ...current, role: (value as Role) || undefined }))}
             options={[
               { value: "", label: "Todos" },
               { value: Role.STUDENT, label: "Aluno" },
@@ -117,10 +122,10 @@ export function AdminInvitationsPanel({
               Nenhum convite encontrado com esses filtros.
             </p>
           ) : (
-            invitations.map((inv) => (
+            invitations.map((invitation) => (
               <InvitationRow
-                key={inv.id}
-                invitation={inv}
+                key={invitation.id}
+                invitation={invitation}
                 onRevoked={() => queryClient.invalidateQueries({ queryKey: ["admin", "invitations"] })}
               />
             ))
@@ -131,12 +136,22 @@ export function AdminInvitationsPanel({
   );
 }
 
-function InviteCreatedBanner({ token, email, onDismiss }: { token: string; email: string; onDismiss: () => void }) {
+function InviteCreatedBanner({
+  token,
+  email,
+  inviteUrl,
+  onDismiss
+}: {
+  token: string;
+  email: string;
+  inviteUrl: string;
+  onDismiss: () => void;
+}) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? `${window.location.origin}/convite/${token}` : `/convite/${token}`;
+  const url = inviteUrl || (typeof window !== "undefined" ? `${window.location.origin}/convite/${token}` : `/convite/${token}`);
 
-  function copy() {
-    navigator.clipboard.writeText(url);
+  async function copy() {
+    await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -222,9 +237,7 @@ function InvitationRow({
           Revogar
         </button>
       )}
-      {revokeMutation.error && (
-        <p className="w-full text-xs text-tertiary-30">{revokeMutation.error.message}</p>
-      )}
+      {revokeMutation.error && <p className="w-full text-xs text-tertiary-30">{revokeMutation.error.message}</p>}
     </div>
   );
 }
@@ -251,7 +264,11 @@ export function CreateInvitationForm({
     mutationFn: api.invitations.create,
     onSuccess: (result) => {
       form.reset();
-      onSuccess({ token: result.invitation.token, email: result.invitation.email });
+      onSuccess({
+        token: result.invitation.token,
+        email: result.invitation.email,
+        inviteUrl: result.invitation.inviteUrl
+      });
     }
   });
 
@@ -261,7 +278,7 @@ export function CreateInvitationForm({
         <Badge variant="primary">Novo convite</Badge>
         <h2 className="text-xl font-bold text-neutral-10 dark:text-neutral-95">Convidar pessoa</h2>
         <p className="text-sm text-neutral-10/70 dark:text-neutral-80">
-          Um link de convite será gerado. A conta só é criada quando o convidado aceitar.
+          Um link de convite sera gerado. A conta so e criada quando o convidado aceitar.
         </p>
       </div>
       <form
@@ -280,7 +297,7 @@ export function CreateInvitationForm({
           {showRoleSelect && (
             <select
               value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
+              onChange={(event) => setSelectedRole(event.target.value)}
               className="focus-ring rounded-2xl border border-black/10 bg-white px-3 py-2 text-sm text-neutral-10 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
             >
               <option value="STUDENT">Aluno</option>
@@ -294,9 +311,9 @@ export function CreateInvitationForm({
               className="focus-ring rounded-2xl border border-black/10 bg-white px-3 py-2 text-sm text-neutral-10 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
             >
               <option value="">Sem tutor vinculado</option>
-              {tutors.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
+              {tutors.map((tutor) => (
+                <option key={tutor.id} value={tutor.id}>
+                  {tutor.name}
                 </option>
               ))}
             </select>
@@ -323,7 +340,7 @@ function FilterSelect({
 }: {
   label: string;
   value: string;
-  onChange: (v: string) => void;
+  onChange: (value: string) => void;
   options: { value: string; label: string }[];
 }) {
   return (
@@ -331,12 +348,12 @@ function FilterSelect({
       <span className="font-medium text-neutral-10/70 dark:text-neutral-80">{label}:</span>
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(event) => onChange(event.target.value)}
         className="focus-ring rounded-full border border-black/10 bg-white px-3 py-1.5 text-sm text-neutral-10 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
       >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
           </option>
         ))}
       </select>

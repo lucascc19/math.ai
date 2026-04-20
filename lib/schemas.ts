@@ -7,12 +7,6 @@ export const loginSchema = z.object({
   password: z.string().min(8, "Use pelo menos 8 caracteres.")
 });
 
-export const registerSchema = z.object({
-  name: z.string().min(2, "Informe pelo menos 2 caracteres."),
-  email: z.string().email("Digite um e-mail valido."),
-  password: z.string().min(8, "Use pelo menos 8 caracteres.")
-});
-
 export const settingsSchema = z.object({
   fontSize: z.number().min(16).max(22),
   spacing: z.number().min(24).max(40),
@@ -77,7 +71,6 @@ export const passwordResetConfirmSchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
-export type RegisterInput = z.infer<typeof registerSchema>;
 export type SettingsInput = z.infer<typeof settingsSchema>;
 export type SubmitAnswerInput = z.infer<typeof submitAnswerSchema>;
 export type CreateTutorInput = z.infer<typeof createTutorSchema>;

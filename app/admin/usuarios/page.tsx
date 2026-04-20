@@ -21,7 +21,10 @@ export default async function AdminUsersPage({ searchParams }: PageProps) {
   const role = parseRole(params.role);
   const active = parseActive(params.active);
 
-  const users = await listUsers({ role, active });
+  const [users, tutors] = await Promise.all([
+    listUsers({ role, active }),
+    listUsers({ role: Role.TUTOR, active: true })
+  ]);
 
-  return <UsersPanel initialUsers={users} filters={{ role, active }} />;
+  return <UsersPanel initialUsers={users} tutors={tutors} filters={{ role, active }} />;
 }
