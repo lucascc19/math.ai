@@ -1,39 +1,20 @@
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/server/prisma";
-import { hashPassword, revokeAllUserSessions } from "@/lib/server/auth";
+import { revokeAllUserSessions } from "@/lib/server/auth";
 import { NotFoundError, requireActor } from "@/lib/server/permissions";
-import type { CreateTutorInput, SetRoleInput, TutorLinkInput } from "@/lib/schemas";
+import type { SetRoleInput, TutorLinkInput } from "@/lib/schemas";
 
 const prismaDb = prisma as any;
-
-export async function createTutor(input: CreateTutorInput) {
-  await requireActor("user.create.tutor");
-
-  const existing = await prismaDb.user.findUnique({ where: { email: input.email } });
-  if (existing) throw new Error("Já existe uma conta com este e-mail.");
-
-  const user = await prismaDb.user.create({
-    data: {
-      name: input.name,
-      email: input.email,
-      role: Role.TUTOR,
-      passwordHash: hashPassword(input.password)
-    },
-    select: { id: true, name: true, email: true, role: true, active: true }
-  });
-
-  return user;
-}
 
 export async function setUserRole(userId: string, input: SetRoleInput) {
   const actor = await requireActor("user.role.set");
 
   if (actor.id === userId && input.role !== Role.ADMIN) {
-    throw new Error("Admin não pode se auto-rebaixar.");
+    throw new Error("Admin nao pode se auto-rebaixar.");
   }
 
   const user = await prismaDb.user.findUnique({ where: { id: userId } });
-  if (!user) throw new NotFoundError("Usuário não encontrado.");
+  if (!user) throw new NotFoundError("Usuario nao encontrado.");
 
   return prismaDb.user.update({
     where: { id: userId },
@@ -46,11 +27,11 @@ export async function setUserActive(userId: string, active: boolean) {
   const actor = await requireActor("user.deactivate");
 
   if (actor.id === userId && !active) {
-    throw new Error("Admin não pode desativar a própria conta.");
+    throw new Error("Admin nao pode desativar a propria conta.");
   }
 
   const user = await prismaDb.user.findUnique({ where: { id: userId } });
-  if (!user) throw new NotFoundError("Usuário não encontrado.");
+  if (!user) throw new NotFoundError("Usuario nao encontrado.");
 
   const updated = await prismaDb.user.update({
     where: { id: userId },
@@ -73,8 +54,8 @@ export async function linkTutorToStudent(input: TutorLinkInput) {
     prismaDb.user.findUnique({ where: { id: input.studentId } })
   ]);
 
-  if (!tutor || tutor.role !== Role.TUTOR) throw new Error("Tutor inválido.");
-  if (!student || student.role !== Role.STUDENT) throw new Error("Aluno inválido.");
+  if (!tutor || tutor.role !== Role.TUTOR) throw new Error("Tutor invalido.");
+  if (!student || student.role !== Role.STUDENT) throw new Error("Aluno invalido.");
 
   return prismaDb.tutorStudent.upsert({
     where: { tutorId_studentId: { tutorId: input.tutorId, studentId: input.studentId } },

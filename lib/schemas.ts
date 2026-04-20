@@ -22,12 +22,6 @@ export const submitAnswerSchema = z.object({
   answer: z.coerce.number()
 });
 
-export const createTutorSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(8)
-});
-
 export const setRoleSchema = z.object({
   role: roleSchema
 });
@@ -73,7 +67,6 @@ export const passwordResetConfirmSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>;
 export type SettingsInput = z.infer<typeof settingsSchema>;
 export type SubmitAnswerInput = z.infer<typeof submitAnswerSchema>;
-export type CreateTutorInput = z.infer<typeof createTutorSchema>;
 export type SetRoleInput = z.infer<typeof setRoleSchema>;
 export type TutorLinkInput = z.infer<typeof tutorLinkSchema>;
 export type LessonDraftInput = z.infer<typeof lessonDraftSchema>;
