@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { publishTrack, unpublishTrack } from "@/lib/server/content";
+
 import { handleError } from "@/lib/server/api-helpers";
+import { publishTrack, unpublishTrack } from "@/lib/server/content";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ trackId: string }> }) {
   try {

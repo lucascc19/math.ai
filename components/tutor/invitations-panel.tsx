@@ -1,17 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Clock, Copy, MailX, MoreHorizontal, Plus, RefreshCcw, Trash2, XCircle } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { api, type InvitationItem } from "@/lib/api";
-import { createInvitationSchema, type CreateInvitationInput } from "@/lib/schemas";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { api, type InvitationItem } from "@/lib/api";
+import { createInvitationSchema, type CreateInvitationInput } from "@/lib/schemas";
 
 const STATUS_LABEL: Record<string, string> = {
   pending: "Pendente",
@@ -99,7 +100,7 @@ export function TutorInvitationsPanel({
         </div>
         {cleanupMutation.data && (
           <p className="text-xs text-neutral-10/65 dark:text-neutral-80">
-            {cleanupMutation.data.deletedCount} convites removidos. A limpeza apaga todos os convites que nao estao mais pendentes.
+            {cleanupMutation.data.deletedCount} convites removidos. A limpeza apaga todos os convites que não estão mais pendentes.
           </p>
         )}
         {cleanupMutation.error && <p className="text-xs text-tertiary-30">{cleanupMutation.error.message}</p>}
@@ -107,7 +108,7 @@ export function TutorInvitationsPanel({
         <div className="grid gap-3">
           {invitations.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-black/10 bg-white/40 p-6 text-center text-sm text-neutral-10/70 dark:border-white/15 dark:bg-neutral-20/40 dark:text-neutral-80">
-              Voce ainda nao enviou convites.
+              Você ainda não enviou convites.
             </p>
           ) : (
             invitations.map((invitation) => (
@@ -157,7 +158,7 @@ function TutorCreateInvitationForm({
         <Badge variant="primary">Novo convite</Badge>
         <h2 className="text-xl font-bold text-neutral-10 dark:text-neutral-95">Convidar aluno</h2>
         <p className="text-sm text-neutral-10/70 dark:text-neutral-80">
-          A conta so e criada quando o aluno aceitar o convite.
+          A conta só é criada quando o aluno aceitar o convite.
         </p>
       </div>
       <form

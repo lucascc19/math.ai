@@ -40,7 +40,7 @@ describe("mailer", () => {
   it("sends email through Resend when configured", async () => {
     process.env.MAIL_PROVIDER = "resend";
     process.env.MAIL_FROM_EMAIL = "noreply@example.com";
-    process.env.MAIL_FROM_NAME = "Base Matematica";
+    process.env.MAIL_FROM_NAME = "Base Matemática";
     process.env.RESEND_API_KEY = "resend-key";
     fetchMock.mockResolvedValue({
       ok: true,

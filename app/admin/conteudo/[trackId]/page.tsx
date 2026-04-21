@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
+
+import { TrackDetailPanel } from "@/components/admin/track-detail-panel";
 import { getTrackWithLessons } from "@/lib/server/content";
 import { NotFoundError } from "@/lib/server/permissions";
-import { TrackDetailPanel } from "@/components/admin/track-detail-panel";
 
 type PageProps = { params: Promise<{ trackId: string }> };
 

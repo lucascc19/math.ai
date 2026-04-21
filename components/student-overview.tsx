@@ -1,23 +1,24 @@
 "use client";
 
-import { useEffect } from "react";
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, BarChart3, BookOpen, CircleCheckBig, Gauge } from "lucide-react";
+import Link from "next/link";
+import { useEffect } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { api } from "@/lib/api";
-import { useAppStore } from "@/store/app-store";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { api } from "@/lib/api";
+import { useAppStore } from "@/store/app-store";
 
 const chartData = [
-  { dia: "Seg", sessoes: 2 },
-  { dia: "Ter", sessoes: 3 },
-  { dia: "Qua", sessoes: 2 },
-  { dia: "Qui", sessoes: 4 },
-  { dia: "Sex", sessoes: 3 },
-  { dia: "Sab", sessoes: 2 }
+  { dia: "Seg", sessões: 2 },
+  { dia: "Ter", sessões: 3 },
+  { dia: "Qua", sessões: 2 },
+  { dia: "Qui", sessões: 4 },
+  { dia: "Sex", sessões: 3 },
+  { dia: "Sab", sessões: 2 }
 ];
 
 export function StudentOverview() {
@@ -55,7 +56,7 @@ export function StudentOverview() {
             Ola, {dashboard.user?.name}.
           </h1>
           <p className="max-w-3xl text-[var(--reading-size)] leading-7 text-neutral-10/74">
-            Aqui voce acompanha suas trilhas ativas e enxerga com clareza onde seguir agora.
+            Aqui você acompanha suas trilhas ativas e enxerga com clareza onde seguir agora.
           </p>
         </div>
       </section>
@@ -87,7 +88,7 @@ export function StudentOverview() {
                 <XAxis dataKey="dia" stroke="#2D3436" />
                 <YAxis stroke="#2D3436" allowDecimals={false} />
                 <Tooltip />
-                <Area type="monotone" dataKey="sessoes" stroke="#3959B8" fill="url(#studyGradient)" />
+                <Area type="monotone" dataKey="sessões" stroke="#3959B8" fill="url(#studyGradient)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

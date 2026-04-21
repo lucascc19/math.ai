@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
 import { sendTransactionalEmail } from "../lib/server/mailer";
 
 function loadEnvFile(filePath: string) {
@@ -35,7 +36,7 @@ async function main() {
 
   const result = await sendTransactionalEmail({
     to,
-    subject: "Teste de envio - Base Matematica",
+    subject: "Teste de envio - Base Matemática",
     text: "Este e um teste de envio do ambiente local.",
     html: "<p>Este e um teste de envio do ambiente local.</p>"
   });

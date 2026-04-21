@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteLesson, updateLesson } from "@/lib/server/content";
-import { handleError } from "@/lib/server/api-helpers";
+
 import { lessonPatchSchema } from "@/lib/schemas";
+import { handleError } from "@/lib/server/api-helpers";
+import { deleteLesson, updateLesson } from "@/lib/server/content";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ lessonId: string }> }) {
   try {

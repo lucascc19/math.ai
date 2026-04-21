@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { submitAnswerSchema } from "@/lib/schemas";
 import { submitAnswer } from "@/lib/server/app-data";
 import { requireCurrentUser } from "@/lib/server/auth";
@@ -17,7 +18,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const isAuthError = error instanceof Error && error.message === "AUTHENTICATION_REQUIRED";
     const message = isAuthError
-      ? "Sessao expirada. Entre novamente."
+      ? "Sessão expirada. Entre novamente."
       : error instanceof Error
         ? error.message
         : "Erro inesperado.";

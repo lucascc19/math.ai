@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { getDashboardData } from "@/lib/server/app-data";
 import { getCurrentSession } from "@/lib/server/auth";
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { calculateAccuracy, updateProgress } from "@/lib/domain/progress";
 
 describe("progress domain", () => {

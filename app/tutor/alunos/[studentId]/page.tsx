@@ -1,11 +1,12 @@
+import { ArrowLeft, BookOpen, CircleCheckBig, Flame, Gauge } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpen, CircleCheckBig, Flame, Gauge } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { prisma } from "@/lib/server/prisma";
 import { NotFoundError } from "@/lib/server/permissions";
+import { prisma } from "@/lib/server/prisma";
 import { getStudentProgress } from "@/lib/server/tutoring";
 
 const prismaDb = prisma as any;

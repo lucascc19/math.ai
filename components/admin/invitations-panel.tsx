@@ -1,18 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Role } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Clock, Copy, MailX, MoreHorizontal, Plus, RefreshCcw, Trash2, XCircle } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { api, type AdminUser, type InvitationItem } from "@/lib/api";
-import { createInvitationSchema, type CreateInvitationInput } from "@/lib/schemas";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { api, type AdminUser, type InvitationItem } from "@/lib/api";
+import { createInvitationSchema, type CreateInvitationInput } from "@/lib/schemas";
 
 const ROLE_LABEL: Record<string, string> = {
   STUDENT: "Aluno",
@@ -129,7 +131,7 @@ export function AdminInvitationsPanel({
         </div>
         {cleanupMutation.data && (
           <p className="text-xs text-neutral-10/65 dark:text-neutral-80">
-            {cleanupMutation.data.deletedCount} convites removidos. A limpeza apaga todos os convites que nao estao mais pendentes.
+            {cleanupMutation.data.deletedCount} convites removidos. A limpeza apaga todos os convites que não estão mais pendentes.
           </p>
         )}
         {cleanupMutation.error && <p className="text-xs text-tertiary-30">{cleanupMutation.error.message}</p>}
@@ -274,52 +276,43 @@ function InvitationRow({
           </span>
         </div>
       </div>
-      <div className="relative flex flex-wrap items-center justify-start gap-2 md:justify-end">
-        <>
-          <button
-            type="button"
-            onClick={() => setMenuOpen((value) => !value)}
-            className="focus-ring inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-10 hover:border-black/20 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-90"
-          >
+      <div className="flex flex-wrap items-center justify-start gap-2 md:justify-end">
+        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+          <DropdownMenuTrigger className="focus-ring inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-10 hover:border-black/20 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-90">
             <MoreHorizontal className="h-3.5 w-3.5" />
             Ações
-          </button>
-          {menuOpen && (
-            <div className="absolute right-0 top-full z-10 mt-2 grid min-w-[180px] gap-1 rounded-2xl border border-black/10 bg-white p-2 shadow-soft dark:border-white/10 dark:bg-neutral-20">
-              {canResend && (
-                <button
-                  type="button"
-                  disabled={resendMutation.isPending || revokeMutation.isPending || deleteMutation.isPending}
-                  onClick={() => resendMutation.mutate()}
-                  className="focus-ring inline-flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-primary-40 hover:bg-primary-95 disabled:opacity-50 dark:text-primary-70 dark:hover:bg-primary-20/30"
-                >
-                  <RefreshCcw className="h-3.5 w-3.5" />
-                  {resendMutation.isPending ? "Reenviando..." : "Reenviar convite"}
-                </button>
-              )}
-              {canRevoke && (
-                <button
-                  type="button"
-                  disabled={revokeMutation.isPending || resendMutation.isPending || deleteMutation.isPending}
-                  onClick={() => revokeMutation.mutate()}
-                  className="focus-ring inline-flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-tertiary-40 hover:bg-tertiary-95 disabled:opacity-50 dark:text-tertiary-70 dark:hover:bg-tertiary-20/30"
-                >
-                  <XCircle className="h-3.5 w-3.5" />
-                  {revokeMutation.isPending ? "Revogando..." : "Revogar convite"}
-                </button>
-              )}
-              <button
-                type="button"
-                disabled={deleteMutation.isPending || resendMutation.isPending || revokeMutation.isPending}
-                onClick={() => deleteMutation.mutate()}
-                className="focus-ring inline-flex items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-tertiary-40 hover:bg-tertiary-95 disabled:opacity-50 dark:text-tertiary-70 dark:hover:bg-tertiary-20/30"
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {canResend && (
+              <DropdownMenuItem
+                disabled={resendMutation.isPending || revokeMutation.isPending || deleteMutation.isPending}
+                onClick={() => resendMutation.mutate()}
+                className="text-primary-40 hover:bg-primary-95 dark:text-primary-70 dark:hover:bg-primary-20/30"
               >
-                <Trash2 className="h-3.5 w-3.5" />
-                {deleteMutation.isPending ? "Excluindo..." : "Excluir convite"}
-              </button>
-            </div>
-          )}
-        </>
+                <RefreshCcw className="h-3.5 w-3.5" />
+                {resendMutation.isPending ? "Reenviando..." : "Reenviar convite"}
+              </DropdownMenuItem>
+            )}
+            {canRevoke && (
+              <DropdownMenuItem
+                disabled={revokeMutation.isPending || resendMutation.isPending || deleteMutation.isPending}
+                onClick={() => revokeMutation.mutate()}
+                className="text-tertiary-40 hover:bg-tertiary-95 dark:text-tertiary-70 dark:hover:bg-tertiary-20/30"
+              >
+                <XCircle className="h-3.5 w-3.5" />
+                {revokeMutation.isPending ? "Revogando..." : "Revogar convite"}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem
+              disabled={deleteMutation.isPending || resendMutation.isPending || revokeMutation.isPending}
+              onClick={() => deleteMutation.mutate()}
+              className="text-tertiary-40 hover:bg-tertiary-95 dark:text-tertiary-70 dark:hover:bg-tertiary-20/30"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              {deleteMutation.isPending ? "Excluindo..." : "Excluir convite"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       {revokeMutation.error && <p className="w-full text-xs text-tertiary-30">{revokeMutation.error.message}</p>}
       {resendMutation.error && <p className="w-full text-xs text-tertiary-30">{resendMutation.error.message}</p>}
@@ -364,7 +357,7 @@ export function CreateInvitationForm({
         <Badge variant="primary">Novo convite</Badge>
         <h2 className="text-xl font-bold text-neutral-10 dark:text-neutral-95">Convidar pessoa</h2>
         <p className="text-sm text-neutral-10/70 dark:text-neutral-80">
-          Um link de convite sera gerado. A conta so e criada quando o convidado aceitar.
+          Um link de convite será gerado. A conta só é criada quando o convidado aceitar.
         </p>
       </div>
       <form

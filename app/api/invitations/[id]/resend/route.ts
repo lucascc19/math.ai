@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildInvitationUrl } from "@/lib/server/app-url";
+
 import { handleError } from "@/lib/server/api-helpers";
+import { buildInvitationUrl } from "@/lib/server/app-url";
 import { resendInvitation } from "@/lib/server/invitations";
 
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {

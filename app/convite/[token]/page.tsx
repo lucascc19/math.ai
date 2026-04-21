@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { getInvitationByToken } from "@/lib/server/invitations";
+
 import { InvitationAcceptForm } from "@/components/invitation-accept-form";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { getInvitationByToken } from "@/lib/server/invitations";
 
 type PageProps = {
   params: Promise<{ token: string }>;

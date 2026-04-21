@@ -1,4 +1,5 @@
 import { Role } from "@prisma/client";
+
 import { StudentTrackDetail } from "@/components/student-track-detail";
 import { requirePageRole } from "@/lib/server/guards";
 

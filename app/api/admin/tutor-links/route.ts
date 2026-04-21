@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { tutorLinkSchema } from "@/lib/schemas";
 import { linkTutorToStudent, unlinkTutorFromStudent } from "@/lib/server/admin";
 import { handleError } from "@/lib/server/api-helpers";
-import { tutorLinkSchema } from "@/lib/schemas";
 
 export async function POST(request: NextRequest) {
   try {

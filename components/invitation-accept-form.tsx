@@ -1,16 +1,17 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { api, type InvitationPublic } from "@/lib/api";
-import { getHomePathForRole } from "@/lib/role-home";
-import { acceptInvitationSchema, type AcceptInvitationInput } from "@/lib/schemas";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { api, type InvitationPublic } from "@/lib/api";
+import { getHomePathForRole } from "@/lib/role-home";
+import { acceptInvitationSchema, type AcceptInvitationInput } from "@/lib/schemas";
 
 const ROLE_LABEL: Record<string, string> = {
   STUDENT: "Aluno",

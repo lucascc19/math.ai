@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createDraftTrack } from "@/lib/server/content";
-import { handleError } from "@/lib/server/api-helpers";
+
 import { trackDraftSchema } from "@/lib/schemas";
+import { handleError } from "@/lib/server/api-helpers";
+import { createDraftTrack } from "@/lib/server/content";
 
 export async function POST(request: NextRequest) {
   try {

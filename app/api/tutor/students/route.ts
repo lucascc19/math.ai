@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { listStudentsForActor } from "@/lib/server/tutoring";
+
 import { handleError } from "@/lib/server/api-helpers";
+import { listStudentsForActor } from "@/lib/server/tutoring";
 
 export async function GET() {
   try {

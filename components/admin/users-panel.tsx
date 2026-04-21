@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import type { Route } from "next";
-import { useRouter, useSearchParams } from "next/navigation";
 import { Role } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck, UserCheck, UserPlus, UserX } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import { CreateInvitationForm } from "@/components/admin/invitations-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -103,14 +104,14 @@ export function UsersPanel({
             ]}
           />
           <span className="ml-auto text-sm text-neutral-10/65 dark:text-neutral-80">
-            {users.length} {users.length === 1 ? "usuario" : "usuarios"}
+            {users.length} {users.length === 1 ? "usuário" : "usuários"}
           </span>
         </div>
 
         <div className="grid gap-3">
           {users.length === 0 ? (
             <p className="rounded-2xl border border-dashed border-black/10 bg-white/40 p-6 text-center text-sm text-neutral-10/70 dark:border-white/15 dark:bg-neutral-20/40 dark:text-neutral-80">
-              Nenhum usuario encontrado com esses filtros.
+              Nenhum usuário encontrado com esses filtros.
             </p>
           ) : (
             users.map((user) => <UserRow key={user.id} user={user} />)

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
@@ -23,10 +24,10 @@ export default function AppError({
         <Card className="grid gap-5 rounded-[32px] border border-black/5 bg-white/90 p-8 shadow-soft">
           <div className="grid gap-3">
             <span className="text-sm font-semibold uppercase tracking-[0.14em] text-primary-40">Erro de carregamento</span>
-            <h1 className="text-3xl font-bold text-neutral-10 md:text-4xl">Nao foi possivel carregar esta pagina agora.</h1>
+            <h1 className="text-3xl font-bold text-neutral-10 md:text-4xl">Não foi possível carregar esta página agora.</h1>
             <p className="max-w-2xl text-sm leading-7 text-neutral-10/75 md:text-base">
-              Ocorreu uma falha durante a navegacao. A interface continua estavel e voce pode tentar novamente sem perder o
-              restante da aplicacao.
+              Ocorreu uma falha durante a navegação. A interface continua estável e você pode tentar novamente sem perder o
+              restante da aplicação.
             </p>
           </div>
 

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createDraftTrack, listTracksForAdmin } from "@/lib/server/content";
-import { handleError } from "@/lib/server/api-helpers";
+
 import { trackDraftSchema } from "@/lib/schemas";
+import { handleError } from "@/lib/server/api-helpers";
+import { createDraftTrack, listTracksForAdmin } from "@/lib/server/content";
 
 export async function GET() {
   try {

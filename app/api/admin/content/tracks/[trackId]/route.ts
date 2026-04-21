@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteTrack, getTrackWithLessons, updateTrack } from "@/lib/server/content";
-import { handleError } from "@/lib/server/api-helpers";
+
 import { trackPatchSchema } from "@/lib/schemas";
+import { handleError } from "@/lib/server/api-helpers";
+import { deleteTrack, getTrackWithLessons, updateTrack } from "@/lib/server/content";
 
 type RouteContext = { params: Promise<{ trackId: string }> };
 

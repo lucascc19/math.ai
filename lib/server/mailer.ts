@@ -39,7 +39,7 @@ function getFromAddress() {
   const fromEmail = process.env.MAIL_FROM_EMAIL?.trim();
   if (!fromEmail) return null;
 
-  const fromName = process.env.MAIL_FROM_NAME?.trim() || "Base Matematica";
+  const fromName = process.env.MAIL_FROM_NAME?.trim() || "Base Matemática";
   return `${fromName} <${fromEmail}>`;
 }
 
@@ -85,13 +85,13 @@ export async function sendTransactionalEmail(input: SendMailInput): Promise<Mail
   if (provider === "resend") {
     const apiKey = process.env.RESEND_API_KEY?.trim();
     if (!apiKey) {
-      throw new Error("RESEND_API_KEY nao configurada.");
+      throw new Error("RESEND_API_KEY não configurada.");
     }
 
     return sendWithResend(input, apiKey, from);
   }
 
-  throw new Error(`Provedor de e-mail nao suportado: ${provider}`);
+  throw new Error(`Provedor de e-mail não suportado: ${provider}`);
 }
 
 export async function sendPasswordResetEmail(input: PasswordResetMailInput) {
@@ -100,16 +100,16 @@ export async function sendPasswordResetEmail(input: PasswordResetMailInput) {
 
   return sendTransactionalEmail({
     to: input.email,
-    subject: "Recuperacao de senha - Base Matematica",
+    subject: "Recuperação de senha - Base Matemática",
     text: [
       "Recebemos um pedido para redefinir sua senha.",
       `Use este link para continuar: ${input.resetUrl}`,
       `Esse link expira em ${expiresAt}.`,
-      "Se voce nao pediu a redefinicao, ignore este e-mail."
+      "Se você não pediu a redefinição, ignore este e-mail."
     ].join("\n"),
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #1f2937;">
-        <h1 style="font-size: 20px; margin-bottom: 16px;">Recuperacao de senha</h1>
+        <h1 style="font-size: 20px; margin-bottom: 16px;">Recuperação de senha</h1>
         <p>Recebemos um pedido para redefinir sua senha.</p>
         <p>
           <a href="${escapedUrl}" style="display: inline-block; padding: 10px 16px; background: #1d4ed8; color: #ffffff; text-decoration: none; border-radius: 8px;">
@@ -119,7 +119,7 @@ export async function sendPasswordResetEmail(input: PasswordResetMailInput) {
         <p>Se preferir, copie e cole este link no navegador:</p>
         <p><a href="${escapedUrl}">${escapedUrl}</a></p>
         <p>Esse link expira em ${escapeHtml(expiresAt)}.</p>
-        <p>Se voce nao pediu a redefinicao, ignore este e-mail.</p>
+        <p>Se você não pediu a redefinição, ignore este e-mail.</p>
       </div>
     `
   });

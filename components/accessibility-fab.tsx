@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Accessibility, SlidersHorizontal, X } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
+import { Accessibility, SlidersHorizontal, X } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import type { SettingsInput } from "@/lib/schemas";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function applyAccessibilitySettings(settings: SettingsInput) {

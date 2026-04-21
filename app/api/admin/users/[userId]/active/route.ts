@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+
 import { setUserActive } from "@/lib/server/admin";
 import { handleError } from "@/lib/server/api-helpers";
 

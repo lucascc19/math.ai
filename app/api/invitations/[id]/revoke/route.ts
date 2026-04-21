@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revokeInvitation } from "@/lib/server/invitations";
+
 import { handleError } from "@/lib/server/api-helpers";
+import { revokeInvitation } from "@/lib/server/invitations";
 
 type RouteContext = {
   params: Promise<{ id: string }>;

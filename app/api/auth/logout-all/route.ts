@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { clearSessionCookie, revokeAllUserSessions } from "@/lib/server/auth";
+
 import { handleError } from "@/lib/server/api-helpers";
+import { clearSessionCookie, revokeAllUserSessions } from "@/lib/server/auth";
 import { requireActor } from "@/lib/server/permissions";
 
 export async function POST() {

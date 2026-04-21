@@ -1,9 +1,16 @@
-import { PrismaClient, Role } from "@prisma/client";
+import { LessonActivityType, PrismaClient, Role } from "@prisma/client";
+
 import { hashPassword, initializeUserData } from "../lib/server/auth";
-import { curriculum, defaultSettings, DEMO_USER } from "../lib/server/curriculum";
+import { curriculum, DEMO_USER } from "../lib/server/curriculum";
 
 const prisma = new PrismaClient();
 const prismaDb = prisma as any;
+
+const defaultAccessibilitySettings = {
+  fontSize: 16,
+  spacing: 24,
+  focusMode: "calmo"
+} as const;
 
 async function main() {
   for (const track of curriculum) {
@@ -12,12 +19,16 @@ async function main() {
       update: {
         name: track.name,
         description: track.description,
+        shortDescription: track.description,
+        longDescriptionMd: `## Visão geral\n\n${track.description}`,
         estimatedTime: track.estimatedTime
       },
       create: {
         slug: track.slug,
         name: track.name,
         description: track.description,
+        shortDescription: track.description,
+        longDescriptionMd: `## Visão geral\n\n${track.description}`,
         estimatedTime: track.estimatedTime
       }
     });
@@ -26,12 +37,33 @@ async function main() {
       where: { slug: track.slug }
     });
 
+    const defaultModule = await prismaDb.trackModule.upsert({
+      where: { id: `module-${dbTrack.id}` },
+      update: {
+        skillTrackId: dbTrack.id,
+        title: "Módulo 1",
+        orderIndex: 0,
+        status: dbTrack.status
+      },
+      create: {
+        id: `module-${dbTrack.id}`,
+        skillTrackId: dbTrack.id,
+        title: "Módulo 1",
+        orderIndex: 0,
+        status: dbTrack.status
+      }
+    });
+
     for (const [index, lesson] of track.lessons.entries()) {
       await prismaDb.lesson.upsert({
         where: { id: lesson.id },
         update: {
           skillTrackId: dbTrack.id,
+          trackModuleId: defaultModule.id,
           title: lesson.title,
+          summary: lesson.story,
+          contentMd: lesson.explanation,
+          instructionMd: lesson.prompt,
           prompt: lesson.prompt,
           story: lesson.story,
           explanation: lesson.explanation,
@@ -44,7 +76,11 @@ async function main() {
         create: {
           id: lesson.id,
           skillTrackId: dbTrack.id,
+          trackModuleId: defaultModule.id,
           title: lesson.title,
+          summary: lesson.story,
+          contentMd: lesson.explanation,
+          instructionMd: lesson.prompt,
           prompt: lesson.prompt,
           story: lesson.story,
           explanation: lesson.explanation,
@@ -53,6 +89,33 @@ async function main() {
           goal: lesson.goal,
           tip: lesson.tip,
           orderIndex: index
+        }
+      });
+
+      await prismaDb.lessonActivity.upsert({
+        where: { id: `activity-${lesson.id}` },
+        update: {
+          lessonId: lesson.id,
+          type: LessonActivityType.NUMERIC,
+          instructionMd: lesson.prompt,
+          answerKey: String(lesson.answer),
+          optionsJson: "[]",
+          hintMd: lesson.tip,
+          feedbackCorrectMd: lesson.explanation,
+          feedbackIncorrectMd: lesson.explanation,
+          orderIndex: 0
+        },
+        create: {
+          id: `activity-${lesson.id}`,
+          lessonId: lesson.id,
+          type: LessonActivityType.NUMERIC,
+          instructionMd: lesson.prompt,
+          answerKey: String(lesson.answer),
+          optionsJson: "[]",
+          hintMd: lesson.tip,
+          feedbackCorrectMd: lesson.explanation,
+          feedbackIncorrectMd: lesson.explanation,
+          orderIndex: 0
         }
       });
     }
@@ -75,9 +138,9 @@ async function main() {
 
   await prismaDb.accessibilityProfile.upsert({
     where: { userId: user.id },
-    update: { ...defaultSettings },
+    update: { ...defaultAccessibilitySettings },
     create: {
-      ...defaultSettings,
+      ...defaultAccessibilitySettings,
       userId: user.id
     }
   });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { publishLesson, unpublishLesson } from "@/lib/server/content";
+
 import { handleError } from "@/lib/server/api-helpers";
+import { publishLesson, unpublishLesson } from "@/lib/server/content";
 
 type RouteContext = { params: Promise<{ lessonId: string }> };
 

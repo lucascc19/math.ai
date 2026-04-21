@@ -3,12 +3,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
-import { api } from "@/lib/api";
-import { passwordResetRequestSchema, type PasswordResetRequestInput } from "@/lib/schemas";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { api } from "@/lib/api";
+import { passwordResetRequestSchema, type PasswordResetRequestInput } from "@/lib/schemas";
 
 export function ForgotPasswordForm() {
   const form = useForm<PasswordResetRequestInput>({

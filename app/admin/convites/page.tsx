@@ -1,4 +1,5 @@
 import { Role } from "@prisma/client";
+
 import { AdminInvitationsPanel } from "@/components/admin/invitations-panel";
 import type { AdminUser } from "@/lib/api";
 import { listUsers } from "@/lib/server/admin";

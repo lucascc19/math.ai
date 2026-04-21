@@ -1,9 +1,10 @@
-import Link from "next/link";
 import { ArrowRight, CircleCheckBig, Gauge, Users } from "lucide-react";
-import type { AdminUser, InvitationItem, TutorMetrics } from "@/lib/api";
+import Link from "next/link";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import type { AdminUser, InvitationItem, TutorMetrics } from "@/lib/api";
 
 export function TutorOverview({
   students,
@@ -20,11 +21,11 @@ export function TutorOverview({
   return (
     <div className="grid gap-6">
       <section className="grid gap-4 rounded-2xl border border-black/5 bg-white/88 p-6 shadow-soft">
-        <Badge variant="primary">Visao geral</Badge>
+        <Badge variant="primary">Visão geral</Badge>
         <div className="grid gap-2">
-          <h1 className="text-3xl font-bold text-neutral-10 md:text-4xl">Area do tutor</h1>
+          <h1 className="text-3xl font-bold text-neutral-10 md:text-4xl">Área do tutor</h1>
           <p className="max-w-3xl text-sm leading-7 text-neutral-10/72">
-            Acompanhe seus alunos, convites e sinais de progresso sem precisar navegar por varias telas.
+            Acompanhe seus alunos, convites e sinais de progresso sem precisar navegar por várias telas.
           </p>
         </div>
 
@@ -44,7 +45,7 @@ export function TutorOverview({
           <div className="flex items-center justify-between gap-3">
             <div className="grid gap-1">
               <Badge variant="secondary">Alunos recentes</Badge>
-              <h2 className="text-xl font-bold text-neutral-10">Quem precisa da sua atencao</h2>
+              <h2 className="text-xl font-bold text-neutral-10">Quem precisa da sua atenção</h2>
             </div>
             <Button asChild variant="ghost" className="rounded-2xl">
               <Link href="/tutor/alunos">
@@ -56,7 +57,7 @@ export function TutorOverview({
           <div className="grid gap-3">
             {recentStudents.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-black/10 bg-neutral-95 p-5 text-sm text-neutral-10/68">
-                Nenhum aluno vinculado ainda. Quando a administracao fizer os vinculos, eles aparecem aqui.
+                Nenhum aluno vinculado ainda. Quando a administração fizer os vínculos, eles aparecem aqui.
               </div>
             ) : (
               recentStudents.map((student) => (
@@ -81,7 +82,7 @@ export function TutorOverview({
         <Card className="grid gap-4 bg-white/88">
           <div className="grid gap-1">
             <Badge variant="primary">Convites</Badge>
-            <h2 className="text-xl font-bold text-neutral-10">Fila rapida</h2>
+            <h2 className="text-xl font-bold text-neutral-10">Fila rápida</h2>
           </div>
           <div className="grid gap-3">
             <PriorityRow label="Convites pendentes" value={String(pendingInvitations.length)} />

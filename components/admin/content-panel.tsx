@@ -1,16 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { ContentStatus } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ArrowRight, BookOpen, FileText, MoreHorizontal, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, BookOpen, FileText, Plus, Trash2 } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { api, type AdminTrack } from "@/lib/api";
 import { trackDraftSchema, type TrackDraftInput } from "@/lib/schemas";
 
@@ -28,11 +31,9 @@ export function ContentPanel({ initialTracks }: { initialTracks: AdminTrack[] })
     <div className="grid gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="grid gap-2">
-          <h1 className="text-3xl font-bold text-neutral-10 dark:text-neutral-95 md:text-4xl">
-            Trilhas e lições
-          </h1>
+          <h1 className="text-3xl font-bold text-neutral-10 dark:text-neutral-95 md:text-4xl">Trilhas e lições</h1>
           <p className="max-w-2xl text-sm leading-7 text-neutral-10/70 dark:text-neutral-80">
-            Crie trilhas em rascunho, adicione lições e publique quando o conteúdo estiver pronto para os alunos.
+            Crie trilhas em rascunho, descreva melhor o percurso pedagógico e publique quando o conteúdo estiver pronto.
           </p>
         </div>
         <Button onClick={() => setCreating((v) => !v)}>
@@ -52,7 +53,6 @@ export function ContentPanel({ initialTracks }: { initialTracks: AdminTrack[] })
 
       <Card className="grid gap-4 rounded-2xl border border-black/5 bg-white/85 p-6 shadow-soft dark:border-white/10 dark:bg-neutral-20/70 md:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-bold text-neutral-10 dark:text-neutral-95">Lista de trilhas</h2>
           <span className="text-sm text-neutral-10/65 dark:text-neutral-80">
             {tracks.length} {tracks.length === 1 ? "trilha" : "trilhas"}
           </span>
@@ -74,7 +74,7 @@ export function ContentPanel({ initialTracks }: { initialTracks: AdminTrack[] })
 
 function TrackRow({ track }: { track: AdminTrack }) {
   const queryClient = useQueryClient();
-  const published = track.lessons.filter((l) => l.status === ContentStatus.PUBLISHED).length;
+  const published = track.lessons.filter((lesson) => lesson.status === ContentStatus.PUBLISHED).length;
 
   const publishMutation = useMutation({
     mutationFn: (publish: boolean) => api.admin.setTrackPublish(track.id, publish),
@@ -97,38 +97,43 @@ function TrackRow({ track }: { track: AdminTrack }) {
         <span className="truncate text-xs text-neutral-10/65 dark:text-neutral-80">
           {track.slug} · {track.estimatedTime} · {track.lessons.length} lições ({published} publicadas)
         </span>
+        <span className="truncate text-xs text-neutral-10/60 dark:text-neutral-80">{track.description}</span>
       </div>
       <StatusPill status={track.status} />
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => publishMutation.mutate(!isPublished)}
-          className="focus-ring inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-10 hover:border-primary-60/30 disabled:opacity-50 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95 dark:hover:border-primary-60/50"
-        >
-          {isPublished ? "Despublicar" : "Publicar"}
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => {
-            if (confirm(`Excluir a trilha "${track.name}"? Todas as lições também serão removidas.`)) {
-              deleteMutation.mutate();
-            }
-          }}
-          className="focus-ring inline-flex items-center gap-1 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-10 hover:border-tertiary-30/40 hover:text-tertiary-30 disabled:opacity-50 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95 dark:hover:border-tertiary-70/50 dark:hover:text-tertiary-70"
-        >
-          <Trash2 className="h-3 w-3" />
-          Excluir
-        </button>
-        <Link
-          href={`/admin/conteudo/${track.id}`}
-          className="focus-ring inline-flex items-center gap-1 rounded-full bg-primary-60 px-3 py-1.5 text-xs font-bold text-white hover:bg-primary-40"
-        >
-          Editar
-          <ArrowRight className="h-3 w-3" />
-        </Link>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="focus-ring inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-10 hover:border-black/20 disabled:opacity-50 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-90">
+          <MoreHorizontal className="h-3.5 w-3.5" />
+          Ações
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem
+            disabled={busy}
+            onClick={() => publishMutation.mutate(!isPublished)}
+            className="text-primary-40 hover:bg-primary-95 dark:text-primary-70 dark:hover:bg-primary-20/30"
+          >
+            <FileText className="h-3.5 w-3.5" />
+            {isPublished ? "Despublicar" : "Publicar"}
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild className="text-primary-40 hover:bg-primary-95 dark:text-primary-70 dark:hover:bg-primary-20/30">
+            <Link href={`/admin/conteudo/${track.id}`}>
+              <ArrowRight className="h-3.5 w-3.5" />
+              Editar trilha
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={busy}
+            onClick={() => {
+              if (confirm(`Excluir a trilha "${track.name}"? Todas as lições também serão removidas.`)) {
+                deleteMutation.mutate();
+              }
+            }}
+            className="text-tertiary-40 hover:bg-tertiary-95 dark:text-tertiary-70 dark:hover:bg-tertiary-20/30"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Excluir trilha
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       {(publishMutation.error || deleteMutation.error) && (
         <p className="w-full text-xs text-tertiary-30 dark:text-tertiary-70">
           {(publishMutation.error ?? deleteMutation.error)?.message}
@@ -146,6 +151,7 @@ export function StatusPill({ status }: { status: ContentStatus }) {
       </span>
     );
   }
+
   return (
     <span className="inline-flex items-center gap-1 rounded-full bg-neutral-90 px-2.5 py-1 text-xs font-bold text-neutral-30 dark:bg-neutral-20/60 dark:text-neutral-70">
       <FileText className="h-3 w-3" />
@@ -157,7 +163,18 @@ export function StatusPill({ status }: { status: ContentStatus }) {
 function CreateTrackForm({ onSuccess }: { onSuccess: () => void }) {
   const form = useForm<TrackDraftInput>({
     resolver: zodResolver(trackDraftSchema),
-    defaultValues: { slug: "", name: "", description: "", estimatedTime: "" }
+    defaultValues: {
+      slug: "",
+      name: "",
+      description: "",
+      shortDescription: "",
+      longDescriptionMd: "",
+      estimatedTime: "",
+      difficulty: "",
+      targetAudience: "",
+      learningOutcomesMd: "",
+      prerequisiteSummaryMd: ""
+    }
   });
 
   const mutation = useMutation({
@@ -174,15 +191,35 @@ function CreateTrackForm({ onSuccess }: { onSuccess: () => void }) {
         <Badge variant="primary">Nova trilha</Badge>
         <h2 className="text-xl font-bold text-neutral-10 dark:text-neutral-95">Criar trilha em rascunho</h2>
         <p className="text-sm text-neutral-10/70 dark:text-neutral-80">
-          A trilha começa como rascunho. Publique depois de adicionar lições e revisar o conteúdo.
+          Comece pelos metadados essenciais e já registre objetivos, pré-requisitos e descrição longa em Markdown.
         </p>
       </div>
-      <form className="grid gap-3 md:grid-cols-2" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
-        <Input placeholder="Slug (ex: fracoes)" {...form.register("slug")} />
-        <Input placeholder="Nome" {...form.register("name")} />
-        <Input placeholder="Tempo estimado (ex: 4 semanas)" {...form.register("estimatedTime")} />
-        <Input placeholder="Descrição curta" {...form.register("description")} />
-        <div className="md:col-span-2 flex flex-wrap items-center gap-3">
+
+      <form className="grid gap-5" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
+        <section className="grid gap-3 md:grid-cols-2">
+          <Input placeholder="Slug (ex: fracoes)" {...form.register("slug")} />
+          <Input placeholder="Nome" {...form.register("name")} />
+          <Input placeholder="Tempo estimado (ex: 4 semanas)" {...form.register("estimatedTime")} />
+          <Input placeholder="Nível sugerido (ex: Fundamental II)" {...form.register("difficulty")} />
+          <Input placeholder="Público-alvo" {...form.register("targetAudience")} className="md:col-span-2" />
+        </section>
+
+        <section className="grid gap-3">
+          <Textarea placeholder="Descrição curta para listagens" {...form.register("description")} className="min-h-24" />
+          <Textarea placeholder="Descrição longa em Markdown" {...form.register("longDescriptionMd")} className="min-h-40" />
+          <Textarea
+            placeholder="Objetivos de aprendizagem em Markdown"
+            {...form.register("learningOutcomesMd")}
+            className="min-h-28"
+          />
+          <Textarea
+            placeholder="Pré-requisitos em Markdown"
+            {...form.register("prerequisiteSummaryMd")}
+            className="min-h-28"
+          />
+        </section>
+
+        <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? "Criando..." : "Criar trilha"}
           </Button>

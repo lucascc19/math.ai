@@ -1,9 +1,10 @@
-import { redirect } from "next/navigation";
 import type { Role } from "@prisma/client";
+import { redirect } from "next/navigation";
+
 import { normalizeAccessibilitySettings } from "@/lib/accessibility-settings";
 import { getHomePathForRole } from "@/lib/role-home";
-import { clearSessionCookie, getCurrentSession } from "@/lib/server/auth";
 import type { SettingsInput } from "@/lib/schemas";
+import { clearSessionCookie, getCurrentSession } from "@/lib/server/auth";
 
 export type GuardedUser = {
   id: string;

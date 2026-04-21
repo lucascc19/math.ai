@@ -1,6 +1,7 @@
 import { Role } from "@prisma/client";
-import { prisma } from "@/lib/server/prisma";
+
 import { assertCanViewStudent, requireActor } from "@/lib/server/permissions";
+import { prisma } from "@/lib/server/prisma";
 
 const prismaDb = prisma as any;
 

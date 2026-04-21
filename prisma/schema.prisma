@@ -19,6 +19,20 @@ enum ContentStatus {
   PUBLISHED
 }
 
+enum LessonType {
+  EXPLANATION
+  PRACTICE
+  QUIZ
+  REVIEW
+}
+
+enum LessonActivityType {
+  NUMERIC
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  SHORT_TEXT
+}
+
 model User {
   id               String                 @id @default(cuid())
   name             String
@@ -99,31 +113,80 @@ model AccessibilityProfile {
 }
 
 model SkillTrack {
-  id            String          @id @default(cuid())
-  slug          String          @unique
-  name          String
-  description   String
-  estimatedTime String
-  status        ContentStatus   @default(DRAFT)
-  lessons       Lesson[]
-  progress      TrackProgress[]
+  id                    String        @id @default(cuid())
+  slug                  String        @unique
+  name                  String
+  description           String
+  shortDescription      String        @default("")
+  longDescriptionMd     String        @default("")
+  estimatedTime         String
+  difficulty            String        @default("")
+  targetAudience        String        @default("")
+  learningOutcomesMd    String        @default("")
+  prerequisiteSummaryMd String        @default("")
+  status                ContentStatus @default(DRAFT)
+  modules               TrackModule[]
+  lessons               Lesson[]
+  progress              TrackProgress[]
+}
+
+model TrackModule {
+  id               String        @id @default(cuid())
+  skillTrackId     String
+  skillTrack       SkillTrack    @relation(fields: [skillTrackId], references: [id], onDelete: Cascade)
+  title            String
+  descriptionMd    String        @default("")
+  estimatedMinutes Int?
+  orderIndex       Int
+  status           ContentStatus @default(DRAFT)
+  lessons          Lesson[]
+
+  @@index([skillTrackId])
 }
 
 model Lesson {
-  id            String         @id @default(cuid())
-  skillTrackId  String
-  skillTrack    SkillTrack     @relation(fields: [skillTrackId], references: [id], onDelete: Cascade)
-  title         String
-  prompt        String
-  story         String
-  explanation   String
-  answer        Int
-  level         String
-  goal          String
-  tip           String
-  orderIndex    Int
-  status        ContentStatus  @default(DRAFT)
-  attempts      Attempt[]
+  id               String         @id @default(cuid())
+  skillTrackId     String
+  skillTrack       SkillTrack     @relation(fields: [skillTrackId], references: [id], onDelete: Cascade)
+  trackModuleId    String
+  trackModule      TrackModule    @relation(fields: [trackModuleId], references: [id], onDelete: Cascade)
+  title            String
+  summary          String         @default("")
+  contentMd        String         @default("")
+  instructionMd    String         @default("")
+  teacherNotesMd   String         @default("")
+  lessonType       LessonType     @default(PRACTICE)
+  estimatedMinutes Int?
+  prompt           String
+  story            String
+  explanation      String
+  answer           Int
+  level            String
+  goal             String
+  tip              String
+  orderIndex       Int
+  status           ContentStatus  @default(DRAFT)
+  activities       LessonActivity[]
+  attempts         Attempt[]
+
+  @@index([trackModuleId])
+}
+
+model LessonActivity {
+  id                  String             @id @default(cuid())
+  lessonId            String
+  lesson              Lesson             @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  type                LessonActivityType
+  instructionMd       String             @default("")
+  answerKey           String
+  optionsJson         String             @default("[]")
+  hintMd              String             @default("")
+  feedbackCorrectMd   String             @default("")
+  feedbackIncorrectMd String             @default("")
+  orderIndex          Int
+  attempts            Attempt[]
+
+  @@index([lessonId])
 }
 
 model TrackProgress {
@@ -145,11 +208,13 @@ model Attempt {
   id          String   @id @default(cuid())
   userId      String
   lessonId    String
-  answer      Int
+  activityId  String
+  answer      String
   isCorrect   Boolean
   createdAt   DateTime @default(now())
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  activity    LessonActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
 }
 
 model Session {

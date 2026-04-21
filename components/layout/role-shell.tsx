@@ -1,10 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import type { Route } from "next";
-import { usePathname, useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   BookOpen,
@@ -20,9 +15,15 @@ import {
   Users,
   X
 } from "lucide-react";
+import type { Route } from "next";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+
+import { AccessibilityFab } from "@/components/accessibility-fab";
 import { api } from "@/lib/api";
 import type { SettingsInput } from "@/lib/schemas";
-import { AccessibilityFab } from "@/components/accessibility-fab";
 import { cn } from "@/lib/utils";
 
 type ShellRole = "admin" | "tutor" | "student";
@@ -51,30 +52,30 @@ const shellConfig: Record<
   }
 > = {
   admin: {
-    title: "Base Matematica",
+    title: "Base Matemática",
     subtitle: "Administrador",
     nav: [
-      { href: "/admin", label: "Visao geral", icon: "dashboard" },
-      { href: "/admin/usuarios", label: "Usuarios", icon: "users" },
+      { href: "/admin", label: "Visão geral", icon: "dashboard" },
+      { href: "/admin/usuarios", label: "Usuários", icon: "users" },
       { href: "/admin/convites", label: "Convites", icon: "invites" },
-      { href: "/admin/vinculos", label: "Vinculos", icon: "links" },
-      { href: "/admin/conteudo", label: "Conteudo", icon: "content" }
+      { href: "/admin/vinculos", label: "Vínculos", icon: "links" },
+      { href: "/admin/conteudo", label: "Conteúdo", icon: "content" }
     ]
   },
   tutor: {
-    title: "Base Matematica",
+    title: "Base Matemática",
     subtitle: "Tutor",
     nav: [
-      { href: "/tutor", label: "Visao geral", icon: "dashboard" },
+      { href: "/tutor", label: "Visão geral", icon: "dashboard" },
       { href: "/tutor/alunos", label: "Alunos", icon: "students" },
       { href: "/tutor/convites", label: "Convites", icon: "invites" }
     ]
   },
   student: {
-    title: "Base Matematica",
+    title: "Base Matemática",
     subtitle: "Aluno",
     nav: [
-      { href: "/aluno", label: "Visao geral", icon: "dashboard" },
+      { href: "/aluno", label: "Visão geral", icon: "dashboard" },
       { href: "/aluno/trilhas", label: "Trilhas", icon: "content" }
     ]
   }

@@ -4,7 +4,7 @@ Ultima atualizacao: 2026-04-20
 
 ## Visao geral
 
-Este documento resume o estado atual da plataforma `Projeto Base Matematica`, com foco em:
+Este documento resume o estado atual da plataforma `Projeto Base Matemática`, com foco em:
 
 - o que ja foi implementado
 - o que ja funciona, mas ainda esta simplificado
@@ -36,6 +36,8 @@ Este documento resume o estado atual da plataforma `Projeto Base Matematica`, co
 - Tela de redefinicao de senha em `/redefinir-senha?token=...`
 - Tela de aceite de convite em `/convite/[token]`
 - Area do aluno em `/aluno` protegida por sessao e papel `STUDENT`
+- Pagina de trilhas do aluno em `/aluno/trilhas`
+- Pagina de detalhe de trilha em `/aluno/trilhas/[skillId]`
 - `/dashboard` mantido apenas como rota de compatibilidade, redirecionando para a home correta da role
 - Area admin em `/admin/*` protegida por papel `ADMIN`
 - Area tutor em `/tutor/*` protegida por papel `TUTOR` ou `ADMIN`
@@ -50,6 +52,7 @@ Este documento resume o estado atual da plataforma `Projeto Base Matematica`, co
 - Shell lateral padronizada para `ADMIN`, `TUTOR` e `STUDENT`
 - Sidebar recolhivel no desktop, com tooltips no modo compacto
 - Menu de conta na sidebar com nome, role e acao de logout
+- Navegacao lateral do aluno com entradas dedicadas para `Visao geral` e `Trilhas`
 - Botoes, cards e secoes principais padronizados com raio de 16px
 
 ### 1.4 Autenticacao e sessao
@@ -106,9 +109,13 @@ Este documento resume o estado atual da plataforma `Projeto Base Matematica`, co
 
 - Trilhas iniciais de Adicao, Subtracao, Multiplicacao e Divisao
 - Licoes com enunciado, historia, explicacao, resposta, nivel, meta, dica e passos guiados
+- `LessonActivity` introduzido como unidade propria de atividade dentro da licao
+- Tipos de atividade previstos: `NUMERIC`, `MULTIPLE_CHOICE`, `TRUE_FALSE` e `SHORT_TEXT`
 - Progressao por acertos, tentativas, streak e dominio
 - Submissao de resposta com feedback contextual
 - Area do aluno filtrando apenas conteudo publicado
+- Trilhas com estrutura `trilha -> modulo -> licao`
+- Conteúdo rico em trilhas e licoes com Markdown e formulas
 
 ### 1.8 CRUD de conteudo (admin)
 
@@ -116,14 +123,18 @@ Este documento resume o estado atual da plataforma `Projeto Base Matematica`, co
 - Criacao e edicao de trilhas
 - Publicacao/despublicacao
 - Exclusao de trilha e licao
-- Reordenacao de licoes
+- CRUD de modulos
+- Reordenacao de modulos
+- Reordenacao de licoes por modulo
+- Movimentacao de licoes entre modulos com reindexacao automatica
+- Edicao de varias atividades por licao no painel admin
 - Rotas REST para tracks e lessons no namespace `/api/admin/content/*`
 
 ### 1.9 Painel administrativo
 
 - Guard de papel `ADMIN` no layout `/admin`
 - Home operacional em `/admin` com visao geral
-- Navegacao interna: Usuários, Convites, Vínculos, Conteudo
+- Navegacao interna: Usuários, Convites, Vínculos, Conteúdo
 - `/admin/usuarios`:
   - lista com filtros por papel e status
   - alterar papel
@@ -159,12 +170,27 @@ Este documento resume o estado atual da plataforma `Projeto Base Matematica`, co
 ### 1.11 Area do aluno
 
 - Home principal do aluno em `/aluno`
+- Area dedicada de trilhas em `/aluno/trilhas`
+- Pagina de detalhe por trilha em `/aluno/trilhas/[skillId]`
 - Mesmo layout lateral de `ADMIN` e `TUTOR`, com conteudo especifico da role
-- Modulos atuais:
-  - resumo com tentativas, precisao geral e trilhas ativas
-  - secao "Trilhas" para continuar estudos
-  - secao "Seu progresso atual"
-  - secao "Ritmo semanal"
+- Visao geral do aluno simplificada para:
+  - tentativas
+  - precisao geral
+  - trilhas ativas
+  - ritmo semanal
+- Acesso as trilhas por dois caminhos:
+  - item `Trilhas` na sidebar
+  - CTA `Abrir trilhas` na visao geral
+- Lista de trilhas com cards clicaveis levando para a pagina de detalhe
+- Lista de trilhas exibindo modulo atual e licao atual
+- Pagina de detalhe da trilha exibindo:
+  - visao geral da trilha
+  - publico e nivel
+  - pre-requisitos
+  - objetivos
+  - modulos com licoes clicaveis
+  - conteudo da licao selecionada na propria tela
+- Resposta interativa da atividade principal da licao com suporte inicial a `NUMERIC` e `MULTIPLE_CHOICE`
 
 ### 1.12 Backend
 
@@ -187,6 +213,7 @@ Este documento resume o estado atual da plataforma `Projeto Base Matematica`, co
   - `AccessibilityProfile`
   - `SkillTrack`
   - `Lesson`
+  - `LessonActivity`
   - `TrackProgress`
   - `Attempt`
   - `TutorStudent`
@@ -194,6 +221,8 @@ Este documento resume o estado atual da plataforma `Projeto Base Matematica`, co
 - Enums:
   - `Role` (`STUDENT`, `TUTOR`, `ADMIN`)
   - `ContentStatus` (`DRAFT`, `PUBLISHED`)
+  - `LessonType` (`EXPLANATION`, `PRACTICE`, `QUIZ`, `REVIEW`)
+  - `LessonActivityType` (`NUMERIC`, `MULTIPLE_CHOICE`, `TRUE_FALSE`, `SHORT_TEXT`)
 - Migrations aplicadas:
   - `initial`
   - `add-rbac-scope`
@@ -255,6 +284,7 @@ Este documento resume o estado atual da plataforma `Projeto Base Matematica`, co
 ### 2.4 Revisao adaptativa
 
 - Progressao linear com streak e dominio
+- Ordem da progressao agora montada por `modulo -> licao`
 - Ainda nao ha:
   - fila de revisao por erro recorrente
   - priorizacao por tempo sem praticar
@@ -269,9 +299,10 @@ Este documento resume o estado atual da plataforma `Projeto Base Matematica`, co
 ### 2.6 Metricas de engajamento na area do aluno
 
 - Grafico "Ritmo semanal" ainda usa dados estaticos
+- A visao geral do aluno foi intencionalmente reduzida para um painel mais enxuto; a exploracao pedagogica agora fica concentrada na area `/aluno/trilhas`
 - Pendente alimentar com dados reais de `Attempt`
 
-### 2.7 Conteudo institucional da landing page
+### 2.7 Conteúdo institucional da landing page
 
 - Estrutura pronta
 - Pendente:
@@ -286,9 +317,17 @@ Este documento resume o estado atual da plataforma `Projeto Base Matematica`, co
   - reset de senha ponta a ponta
   - rate limiting HTTP real
   - CRUD de conteudo
+  - fluxo completo de modulos no admin
+  - progressao do aluno em trilhas com varios modulos
   - combinacoes extras de RBAC
   - cenarios adicionais de convite (`used`, `ADMIN`, `TUTOR`, sem convite)
   - acessibilidade ponta a ponta
+
+### 2.9 Fase 2 das trilhas
+
+- Fase 2 consolidada funcionalmente
+- Compatibilidade antiga de reorder por trilha removida
+- Pendentes restantes desta fase ficaram restritos a validacao local completa com migration aplicada e checagem final da progressao real
 
 ---
 
@@ -325,7 +364,7 @@ Opcoes futuras: Resend, SendGrid, SES, Mailgun. Exige variaveis de ambiente e um
 ### 3.4 Painel do tutor expandido
 
 - ranking de dificuldades do grupo
-- historico de sessoes por aluno
+- histórico de sessoes por aluno
 - anotacoes/comentarios
 - comparacao com media da turma
 
@@ -349,7 +388,7 @@ Opcoes futuras: Resend, SendGrid, SES, Mailgun. Exige variaveis de ambiente e um
 
 ### 3.8 Melhorias de produto
 
-- historico navegavel de sessoes
+- histórico navegavel de sessoes
 - relatorios exportaveis (CSV/PDF)
 - notificacoes e lembretes
 - modo offline (PWA)
@@ -405,6 +444,8 @@ Ordem sugerida de evolucao agora:
 - Redirecionamento por role para `/admin`, `/tutor` e `/aluno`
 - Shell lateral padronizada com sidebar recolhivel e logout por menu de conta
 - Area do aluno em `/aluno`
+- Area de trilhas do aluno com listagem e detalhe em rotas dedicadas
+- Estrutura pedagogica por modulos implementada
 - CRUD de conteudo (admin)
 - Painel admin de usuarios, vinculos, conteudo e convites
 - Painel tutor de alunos e convites
@@ -428,14 +469,15 @@ Ordem sugerida de evolucao agora:
 
 ## 6. Proximo passo recomendado
 
-Como o envio transacional de e-mail foi pausado por enquanto, o proximo passo recomendado passa a ser:
+Como a Fase 2 das trilhas ficou funcionalmente consolidada, o proximo passo recomendado passa a ser:
 
-**fortalecer observabilidade e validacao automatizada** do fluxo de autenticacao, convites e painel administrativo.
+**iniciar a Fase 3 para separar conteudo de licao e atividade avaliativa**.
 
 Na sequencia:
 
-- ampliar cobertura de testes
-- preparar pipeline CI/CD
-- retomar e-mail transacional apenas quando houver decisao de dominio/remetente
+- criar `LessonActivity`
+- suportar ao menos `NUMERIC` e `MULTIPLE_CHOICE`
+- adaptar a submissao do aluno para responder a atividade
+- ampliar cobertura de testes nessa nova camada
 
-Esse caminho consolida o que ja esta pronto em convites e reduz risco operacional antes dos proximos blocos de produto.
+Esse caminho aproveita a navegacao por modulos ja pronta e destrava a experiencia real de exercicios.

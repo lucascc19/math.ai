@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
 import { Role } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
+
 import { listUsers } from "@/lib/server/admin";
 import { handleError } from "@/lib/server/api-helpers";
 

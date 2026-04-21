@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { getInvitationByToken } from "@/lib/server/invitations";
 import { checkRateLimit, rateLimitResponse } from "@/lib/server/rate-limit";
 

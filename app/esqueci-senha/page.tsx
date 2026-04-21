@@ -1,6 +1,7 @@
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
 import { getHomePathForRole } from "@/lib/role-home";
 import { tryGetCurrentSession } from "@/lib/server/auth";

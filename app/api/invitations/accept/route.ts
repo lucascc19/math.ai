@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { acceptInvitationSchema } from "@/lib/schemas";
-import { acceptInvitation } from "@/lib/server/invitations";
 import { handleError } from "@/lib/server/api-helpers";
+import { acceptInvitation } from "@/lib/server/invitations";
 import { checkRateLimit, rateLimitResponse } from "@/lib/server/rate-limit";
 
 export async function POST(request: NextRequest) {

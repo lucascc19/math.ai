@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { getStudentProgress } from "@/lib/server/tutoring";
+
 import { handleError } from "@/lib/server/api-helpers";
+import { getStudentProgress } from "@/lib/server/tutoring";
 
 export async function GET(_: Request, { params }: { params: Promise<{ studentId: string }> }) {
   try {

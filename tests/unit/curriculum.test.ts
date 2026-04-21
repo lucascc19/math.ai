@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { curriculum, getLessonMeta, getTrackMeta } from "@/lib/server/curriculum";
 
 describe("curriculum metadata", () => {

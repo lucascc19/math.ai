@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { ForbiddenError, NotFoundError } from "@/lib/server/permissions";
+
 import { InvitationExpiredError, InvitationAlreadyUsedError, InvitationRevokedError } from "@/lib/server/invitations";
+import { ForbiddenError, NotFoundError } from "@/lib/server/permissions";
 
 export function handleError(error: unknown) {
   if (error instanceof ForbiddenError) {

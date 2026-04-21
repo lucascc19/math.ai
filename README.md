@@ -1,4 +1,4 @@
-# Projeto Base Matematica
+# Projeto Base Matemática
 
 Sistema full-stack inicial para apoio a alunos com TDAH e TEA em matematica basica.
 

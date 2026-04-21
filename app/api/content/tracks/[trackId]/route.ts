@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteTrack, updateTrack } from "@/lib/server/content";
-import { handleError } from "@/lib/server/api-helpers";
+
 import { trackPatchSchema } from "@/lib/schemas";
+import { handleError } from "@/lib/server/api-helpers";
+import { deleteTrack, updateTrack } from "@/lib/server/content";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ trackId: string }> }) {
   try {

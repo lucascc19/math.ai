@@ -1,6 +1,7 @@
 import { randomBytes, createHash } from "node:crypto";
-import { prisma } from "@/lib/server/prisma";
+
 import { hashPassword, revokeAllUserSessions } from "@/lib/server/auth";
+import { prisma } from "@/lib/server/prisma";
 
 const RESET_TOKEN_TTL_MS = 1000 * 60 * 60;
 const prismaDb = prisma as any;

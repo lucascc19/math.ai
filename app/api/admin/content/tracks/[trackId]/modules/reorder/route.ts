@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { reorderLessons } from "@/lib/server/content";
+
 import { handleError } from "@/lib/server/api-helpers";
+import { reorderTrackModules } from "@/lib/server/content";
 
 const reorderSchema = z.object({
   orderedIds: z.array(z.string().min(1)).min(1)
@@ -17,7 +18,8 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
-    const result = await reorderLessons(trackId, parsed.data.orderedIds);
+
+    const result = await reorderTrackModules(trackId, parsed.data.orderedIds);
     return NextResponse.json(result);
   } catch (error) {
     return handleError(error);

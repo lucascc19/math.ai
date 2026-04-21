@@ -1,6 +1,11 @@
+import type { ContentStatus, Role } from "@prisma/client";
+
 import type {
   AcceptInvitationInput,
   CreateInvitationInput,
+  LessonActivityDraftInput,
+  ModuleDraftInput,
+  ModulePatchInput,
   LessonDraftInput,
   LessonPatchInput,
   LoginInput,
@@ -13,8 +18,10 @@ import type {
   TrackPatchInput,
   TutorLinkInput
 } from "@/lib/schemas";
-import type { ContentStatus, Role } from "@prisma/client";
 import type { InvitationStatus } from "@/lib/server/invitations";
+
+export type AdminLessonType = "EXPLANATION" | "PRACTICE" | "QUIZ" | "REVIEW";
+export type AdminLessonActivityType = LessonActivityDraftInput["type"];
 
 async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {
@@ -27,7 +34,7 @@ async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    let message = "Nao foi possivel concluir a requisicao.";
+    let message = "Não foi possível concluir a requisição.";
 
     try {
       const payload = (await response.json()) as { error?: string };
@@ -35,7 +42,7 @@ async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
         message = payload.error;
       }
     } catch {
-      // Mantem a mensagem padrao se o corpo nao vier em JSON.
+      // Mantém a mensagem padrão se o corpo não vier em JSON.
     }
 
     const error = new Error(message) as Error & { status?: number };
@@ -126,8 +133,25 @@ export const api = {
         method: "POST",
         body: JSON.stringify({ publish })
       }),
-    reorderLessons: (trackId: string, orderedIds: string[]) =>
-      request<{ ok: true }>(`/api/admin/content/tracks/${trackId}/reorder`, {
+    reorderModules: (trackId: string, orderedIds: string[]) =>
+      request<{ ok: true }>(`/api/admin/content/tracks/${trackId}/modules/reorder`, {
+        method: "POST",
+        body: JSON.stringify({ orderedIds })
+      }),
+    createModule: (input: ModuleDraftInput) =>
+      request<{ module: AdminTrackModule }>("/api/admin/content/modules", {
+        method: "POST",
+        body: JSON.stringify(input)
+      }),
+    updateModule: (moduleId: string, input: ModulePatchInput) =>
+      request<{ module: AdminTrackModule }>(`/api/admin/content/modules/${moduleId}`, {
+        method: "PATCH",
+        body: JSON.stringify(input)
+      }),
+    deleteModule: (moduleId: string) =>
+      request<{ ok: true }>(`/api/admin/content/modules/${moduleId}`, { method: "DELETE" }),
+    reorderModuleLessons: (moduleId: string, orderedIds: string[]) =>
+      request<{ ok: true }>(`/api/admin/content/modules/${moduleId}/reorder`, {
         method: "POST",
         body: JSON.stringify({ orderedIds })
       }),
@@ -221,7 +245,14 @@ export type TutorMetrics = {
 export type AdminLesson = {
   id: string;
   skillTrackId: string;
+  trackModuleId: string;
   title: string;
+  summary: string;
+  contentMd: string;
+  instructionMd: string;
+  teacherNotesMd: string;
+  lessonType: AdminLessonType;
+  estimatedMinutes: number | null;
   prompt: string;
   story: string;
   explanation: string;
@@ -231,6 +262,64 @@ export type AdminLesson = {
   tip: string;
   orderIndex: number;
   status: ContentStatus;
+  activities: AdminLessonActivity[];
+};
+
+export type AdminLessonActivity = {
+  id: string;
+  lessonId: string;
+  type: AdminLessonActivityType;
+  instructionMd: string;
+  answerKey: string;
+  optionsJson: string;
+  hintMd: string;
+  feedbackCorrectMd: string;
+  feedbackIncorrectMd: string;
+  orderIndex: number;
+};
+
+export type AdminTrackModule = {
+  id: string;
+  skillTrackId: string;
+  title: string;
+  descriptionMd: string;
+  estimatedMinutes: number | null;
+  orderIndex: number;
+  status: ContentStatus;
+  lessons: AdminLesson[];
+};
+
+export type StudentModuleSummary = {
+  id: string;
+  title: string;
+  descriptionMd: string;
+  orderIndex: number;
+  estimatedMinutes: number | null;
+  lessons: Array<{
+    id: string;
+    title: string;
+    summary: string;
+    orderIndex: number;
+    lessonType: AdminLessonType;
+    contentMd: string;
+    instructionMd: string;
+    estimatedMinutes: number | null;
+    prompt: string;
+    story: string;
+    explanation: string;
+    level: string;
+    goal: string;
+    activity: {
+      id: string;
+      type: AdminLessonActivityType;
+      instructionMd: string;
+      hintMd: string;
+      feedbackCorrectMd: string;
+      feedbackIncorrectMd: string;
+      options: string[];
+    } | null;
+    isCurrent: boolean;
+  }>;
 };
 
 export type AdminTrack = {
@@ -238,13 +327,19 @@ export type AdminTrack = {
   slug: string;
   name: string;
   description: string;
+  shortDescription: string;
+  longDescriptionMd: string;
   estimatedTime: string;
+  difficulty: string;
+  targetAudience: string;
+  learningOutcomesMd: string;
+  prerequisiteSummaryMd: string;
   status: ContentStatus;
   lessons: Array<{ id: string; status: ContentStatus }>;
 };
 
 export type AdminTrackDetail = Omit<AdminTrack, "lessons"> & {
-  lessons: AdminLesson[];
+  modules: AdminTrackModule[];
 };
 
 export type AdminUser = {

@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowRight, BarChart3, CircleCheckBig, Gauge, Users } from "lucide-react";
+import Link from "next/link";
+
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import type { AdminUser, TutorMetrics } from "@/lib/api";

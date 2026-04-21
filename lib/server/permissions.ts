@@ -1,6 +1,7 @@
 import { Role, ContentStatus } from "@prisma/client";
-import { prisma } from "@/lib/server/prisma";
+
 import { requireCurrentUser } from "@/lib/server/auth";
+import { prisma } from "@/lib/server/prisma";
 
 const prismaDb = prisma as any;
 

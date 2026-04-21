@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+import { setRoleSchema } from "@/lib/schemas";
 import { setUserRole } from "@/lib/server/admin";
 import { handleError } from "@/lib/server/api-helpers";
-import { setRoleSchema } from "@/lib/schemas";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
   try {

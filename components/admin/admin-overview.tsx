@@ -1,27 +1,10 @@
-import Link from "next/link";
-import type { Route } from "next";
 import { ContentStatus, Role } from "@prisma/client";
-import {
-  ArrowRight,
-  BookOpen,
-  Clock3,
-  FileText,
-  Link2,
-  ShieldCheck,
-  UserCog,
-  UserPlus,
-  Users
-} from "lucide-react";
-import type { AdminTrack, AdminUser, InvitationItem, TutorLinkFull } from "@/lib/api";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { ArrowRight, BookOpen, Clock3, FileText, Link2, ShieldCheck, UserCog, UserPlus, Users } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 
-const roleLabel: Record<Role, string> = {
-  ADMIN: "Admin",
-  TUTOR: "Tutor",
-  STUDENT: "Aluno"
-};
+import { Card } from "@/components/ui/card";
+import type { AdminTrack, AdminUser, InvitationItem, TutorLinkFull } from "@/lib/api";
 
 export function AdminOverview({
   users,
@@ -54,39 +37,19 @@ export function AdminOverview({
     <div className="grid gap-6">
       <section className="grid gap-4 rounded-2xl border border-black/5 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(239,240,255,0.88))] p-6 shadow-soft">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="grid gap-3">
-            <div className="grid gap-2">
-              <h1 className="max-w-3xl text-3xl font-bold leading-tight text-neutral-10 md:text-4xl">
-                Central de operacao do admin
-              </h1>
-              <p className="max-w-3xl text-sm leading-7 text-neutral-10/72">
-                Aqui fica a leitura rapida da plataforma: contas, convites, vinculos e conteudo em andamento.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid min-w-[240px] gap-2 rounded-2xl border border-primary-60/14 bg-white/80 p-4">
-            <span className="text-xs font-bold uppercase tracking-[0.16em] text-primary-40">Prioridade atual</span>
-            <strong className="text-lg text-neutral-10">
-              {pendingInvitations.length > 0
-                ? `${pendingInvitations.length} convites pendentes`
-                : draftTracks.length > 0
-                  ? `${draftTracks.length} trilhas em rascunho`
-                  : "Base operacional estavel"}
-            </strong>
-            <span className="text-sm leading-6 text-neutral-10/68">
-              {pendingInvitations.length > 0
-                ? "Vale revisar convites antes de abrir novas frentes."
-                : draftTracks.length > 0
-                  ? "Ha conteudo aguardando publicacao ou revisao."
-                  : "A operacao principal parece sem gargalos imediatos."}
-            </span>
+          <div className="grid gap-2">
+            <h1 className="max-w-3xl text-3xl font-bold leading-tight text-neutral-10 md:text-4xl">
+              Central de operação do admin
+            </h1>
+            <p className="max-w-3xl text-sm leading-7 text-neutral-10/72">
+              Aqui fica a leitura rápida da plataforma: contas, convites, vínculos e conteúdo em andamento.
+            </p>
           </div>
         </div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <StatCard
-            title="Usuarios ativos"
+            title="Usuários ativos"
             value={`${activeUsers}/${users.length}`}
             description={`${admins} admins, ${tutors} tutores e ${students} alunos cadastrados`}
             icon={Users}
@@ -95,21 +58,21 @@ export function AdminOverview({
           <StatCard
             title="Convites pendentes"
             value={String(pendingInvitations.length)}
-            description={`${invitations.length} convites no historico total`}
+            description={`${invitations.length} convites no histórico total`}
             icon={UserPlus}
             tone="secondary"
           />
           <StatCard
-            title="Vinculos tutor-aluno"
+            title="Vínculos tutor-aluno"
             value={String(links.length)}
-            description="Relacoes ativas entre acompanhamento e estudo"
+            description="Relações ativas entre acompanhamento e estudo"
             icon={Link2}
             tone="tertiary"
           />
           <StatCard
-            title="Conteudo publicado"
+            title="Conteúdo publicado"
             value={`${publishedTracks.length}/${tracks.length}`}
-            description={`${publishedLessons}/${totalLessons} licoes publicadas`}
+            description={`${publishedLessons}/${totalLessons} lições publicadas`}
             icon={BookOpen}
             tone="primary"
           />
@@ -120,7 +83,6 @@ export function AdminOverview({
         <Card className="grid gap-5 bg-white/84">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="grid gap-2">
-              <Badge variant="secondary">Acoes rapidas</Badge>
               <h2 className="text-2xl font-bold text-neutral-10">Onde agir agora</h2>
             </div>
           </div>
@@ -128,29 +90,29 @@ export function AdminOverview({
           <div className="grid gap-3 md:grid-cols-2">
             <QuickActionCard
               href="/admin/usuarios"
-              title="Gerenciar usuarios"
-              description="Perfis, papeis e contas desativadas."
+              title="Gerenciar usuários"
+              description="Perfis, papéis e contas desativadas."
               meta={`${users.length} contas cadastradas`}
               icon={UserCog}
             />
             <QuickActionCard
               href="/admin/convites"
               title="Revisar convites"
-              description="Criacao, reenvio e limpeza de acessos."
+              description="Criação, reenvio e limpeza de acessos."
               meta={`${pendingInvitations.length} pendentes`}
               icon={ShieldCheck}
             />
             <QuickActionCard
               href="/admin/vinculos"
-              title="Organizar vinculos"
-              description="Conectar tutores e alunos com menos friccao."
-              meta={`${links.length} relacoes ativas`}
+              title="Organizar vínculos"
+              description="Conectar tutores e alunos com menos fricção."
+              meta={`${links.length} relações ativas`}
               icon={Link2}
             />
             <QuickActionCard
               href="/admin/conteudo"
-              title="Publicar conteudo"
-              description="Trilhas, licoes e rascunhos em progresso."
+              title="Publicar conteúdo"
+              description="Trilhas, lições e rascunhos em progresso."
               meta={`${draftTracks.length} trilhas em rascunho`}
               icon={FileText}
             />
@@ -159,8 +121,7 @@ export function AdminOverview({
 
         <Card className="grid gap-4 bg-primary-95">
           <div className="grid gap-2">
-            <Badge variant="primary">Pendencias</Badge>
-            <h2 className="text-2xl font-bold text-neutral-10">Fila de atencao</h2>
+            <h2 className="text-2xl font-bold text-neutral-10">Fila de atenção</h2>
           </div>
 
           <div className="grid gap-3">
@@ -172,102 +133,13 @@ export function AdminOverview({
             <PriorityRow
               label="Trilhas em rascunho"
               value={String(draftTracks.length)}
-              helper="Conteudo ainda nao publicado para alunos."
+              helper="Conteúdo ainda não publicado para alunos."
             />
             <PriorityRow
-              label="Usuarios inativos"
+              label="Usuários inativos"
               value={String(users.length - activeUsers)}
               helper="Pode indicar bloqueios ou contas antigas."
             />
-          </div>
-        </Card>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-3">
-        <Card className="grid gap-4 bg-white/84">
-          <div className="flex items-center justify-between gap-3">
-            <div className="grid gap-1">
-              <Badge variant="tertiary">Usuarios recentes</Badge>
-              <h3 className="text-lg font-bold text-neutral-10">Ultimas contas</h3>
-            </div>
-            <Button asChild variant="ghost" className="rounded-full">
-              <Link href="/admin/usuarios">
-                Abrir
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          <div className="grid gap-3">
-            {recentUsers.map((user) => (
-              <div key={user.id} className="grid gap-1 rounded-2xl border border-black/5 bg-white/80 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <strong className="text-sm text-neutral-10">{user.name}</strong>
-                  <span className="rounded-full bg-neutral-95 px-2.5 py-1 text-xs font-bold text-neutral-30">
-                    {roleLabel[user.role]}
-                  </span>
-                </div>
-                <span className="text-xs text-neutral-10/68">{user.email}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card className="grid gap-4 bg-white/84">
-          <div className="flex items-center justify-between gap-3">
-            <div className="grid gap-1">
-              <Badge variant="secondary">Convites</Badge>
-              <h3 className="text-lg font-bold text-neutral-10">Ultimos envios</h3>
-            </div>
-            <Button asChild variant="ghost" className="rounded-full">
-              <Link href="/admin/convites">
-                Abrir
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          <div className="grid gap-3">
-            {recentInvitations.map((invitation) => (
-              <div key={invitation.id} className="grid gap-1 rounded-2xl border border-black/5 bg-white/80 p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <strong className="text-sm text-neutral-10">{invitation.email}</strong>
-                  <StatusBadge status={invitation.status} />
-                </div>
-                <span className="text-xs text-neutral-10/68">
-                  {roleLabel[invitation.role]} · criado por {invitation.invitedBy.name}
-                </span>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card className="grid gap-4 bg-white/84">
-          <div className="flex items-center justify-between gap-3">
-            <div className="grid gap-1">
-              <Badge variant="primary">Conteudo</Badge>
-              <h3 className="text-lg font-bold text-neutral-10">Trilhas recentes</h3>
-            </div>
-            <Button asChild variant="ghost" className="rounded-full">
-              <Link href="/admin/conteudo">
-                Abrir
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-          <div className="grid gap-3">
-            {recentTracks.map((track) => {
-              const publishedCount = track.lessons.filter((lesson) => lesson.status === ContentStatus.PUBLISHED).length;
-              return (
-                <div key={track.id} className="grid gap-1 rounded-2xl border border-black/5 bg-white/80 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <strong className="text-sm text-neutral-10">{track.name}</strong>
-                    <StatusBadge status={track.status === ContentStatus.PUBLISHED ? "published" : "draft"} />
-                  </div>
-                  <span className="text-xs text-neutral-10/68">
-                    {track.lessons.length} licoes · {publishedCount} publicadas
-                  </span>
-                </div>
-              );
-            })}
           </div>
         </Card>
       </section>
@@ -343,15 +215,7 @@ function QuickActionCard({
   );
 }
 
-function PriorityRow({
-  label,
-  value,
-  helper
-}: {
-  label: string;
-  value: string;
-  helper: string;
-}) {
+function PriorityRow({ label, value, helper }: { label: string; value: string; helper: string }) {
   return (
     <div className="grid gap-1 rounded-2xl border border-primary-60/12 bg-white/82 p-4">
       <div className="flex items-center justify-between gap-3">

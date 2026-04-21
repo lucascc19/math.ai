@@ -1,9 +1,10 @@
 "use client";
 
 import { create } from "zustand";
-import type { SettingsInput } from "@/lib/schemas";
-import type { DashboardResponse } from "@/lib/api";
+
 import { defaultAccessibilitySettings } from "@/lib/accessibility-settings";
+import type { DashboardResponse } from "@/lib/api";
+import type { SettingsInput } from "@/lib/schemas";
 
 type AppState = {
   activeSkillId: string | null;

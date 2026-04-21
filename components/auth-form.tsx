@@ -1,17 +1,18 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { api } from "@/lib/api";
-import { getHomePathForRole } from "@/lib/role-home";
-import { loginSchema, type LoginInput } from "@/lib/schemas";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { api } from "@/lib/api";
+import { getHomePathForRole } from "@/lib/role-home";
+import { loginSchema, type LoginInput } from "@/lib/schemas";
 
 type AuthFormProps = {
   mode: "login";
@@ -63,7 +64,7 @@ export function AuthForm(props: AuthFormProps) {
           {mutation.isPending ? "Entrando..." : "Entrar"}
         </Button>
         <p className="text-sm text-neutral-10/65">
-          {mutation.error ? mutation.error.message : "Use suas credenciais para acessar a sua area."}
+          {mutation.error ? mutation.error.message : "Use suas credenciais para acessar a sua área."}
         </p>
       </form>
 

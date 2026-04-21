@@ -1,9 +1,10 @@
 import { Role } from "@prisma/client";
-import { prisma } from "@/lib/server/prisma";
-import { createSession, hashPassword, initializeUserData, setSessionCookie } from "@/lib/server/auth";
-import { generateOpaqueToken, hashToken } from "@/lib/server/token-hash";
-import { ForbiddenError, NotFoundError, requireActor, requirePermission } from "@/lib/server/permissions";
+
 import type { AcceptInvitationInput, CreateInvitationInput } from "@/lib/schemas";
+import { createSession, hashPassword, initializeUserData, setSessionCookie } from "@/lib/server/auth";
+import { ForbiddenError, NotFoundError, requireActor, requirePermission } from "@/lib/server/permissions";
+import { prisma } from "@/lib/server/prisma";
+import { generateOpaqueToken, hashToken } from "@/lib/server/token-hash";
 
 const prismaDb = prisma as any;
 const INVITATION_TTL_MS = 1000 * 60 * 60 * 24 * 3;
@@ -19,7 +20,7 @@ export class InvitationExpiredError extends Error {
 export class InvitationAlreadyUsedError extends Error {
   readonly status = 400 as const;
   constructor() {
-    super("Este convite ja foi utilizado.");
+    super("Este convite já foi utilizado.");
     this.name = "InvitationAlreadyUsedError";
   }
 }
@@ -54,7 +55,7 @@ function assertPending(invitation: { usedAt: Date | null; revokedAt: Date | null
 
 function assertCanManageInvitation(actor: { id: string; role: Role }, invitation: { invitedByUserId: string }) {
   if (actor.role === Role.TUTOR && invitation.invitedByUserId !== actor.id) {
-    throw new ForbiddenError("Voce so pode gerenciar seus proprios convites.");
+    throw new ForbiddenError("Você só pode gerenciar seus próprios convites.");
   }
 }
 
@@ -83,7 +84,7 @@ export async function createInvitation(input: CreateInvitationInput) {
 
   if (actor.role === Role.TUTOR) {
     if (targetRole !== Role.STUDENT) {
-      throw new ForbiddenError("Tutores so podem convidar alunos.");
+      throw new ForbiddenError("Tutores só podem convidar alunos.");
     }
   } else if (actor.role === Role.ADMIN) {
     const actionMap: Record<Role, "invite.create.admin" | "invite.create.tutor" | "invite.create.student"> = {
@@ -95,7 +96,7 @@ export async function createInvitation(input: CreateInvitationInput) {
   }
 
   const existing = await prismaDb.user.findUnique({ where: { email: input.email } });
-  if (existing) throw new Error("Ja existe uma conta com este e-mail.");
+  if (existing) throw new Error("Já existe uma conta com este e-mail.");
 
   const pendingInvite = await prismaDb.invitation.findFirst({
     where: {
@@ -105,12 +106,12 @@ export async function createInvitation(input: CreateInvitationInput) {
       expiresAt: { gt: new Date() }
     }
   });
-  if (pendingInvite) throw new Error("Ja existe um convite pendente para este e-mail.");
+  if (pendingInvite) throw new Error("Já existe um convite pendente para este e-mail.");
 
   const tutorId = targetRole === Role.STUDENT && input.tutorId ? input.tutorId : undefined;
 
   if (tutorId && actor.role === Role.TUTOR && actor.id !== tutorId) {
-    throw new ForbiddenError("Tutores so podem se vincular como tutor no convite.");
+    throw new ForbiddenError("Tutores só podem se vincular como tutor no convite.");
   }
 
   const invitationPayload = buildInvitationPayload({
@@ -208,14 +209,14 @@ export async function acceptInvitation(input: AcceptInvitationInput) {
       where: { tokenHash }
     });
 
-    if (!invitation) throw new NotFoundError("Convite nao encontrado.");
+    if (!invitation) throw new NotFoundError("Convite não encontrado.");
 
     assertPending(invitation);
 
     const existingUser = await tx.user.findUnique({
       where: { email: invitation.email }
     });
-    if (existingUser) throw new Error("Ja existe uma conta com este e-mail.");
+    if (existingUser) throw new Error("Já existe uma conta com este e-mail.");
 
     const newUser = await tx.user.create({
       data: {
@@ -258,12 +259,12 @@ export async function revokeInvitation(invitationId: string) {
   const actor = await requireActor("invite.revoke");
   const invitation = await prismaDb.invitation.findUnique({ where: { id: invitationId } });
 
-  if (!invitation) throw new NotFoundError("Convite nao encontrado.");
+  if (!invitation) throw new NotFoundError("Convite não encontrado.");
 
   assertCanManageInvitation(actor, invitation);
 
   const status = getInvitationStatus(invitation);
-  if (status === "used") throw new Error("Convite ja utilizado nao pode ser revogado.");
+  if (status === "used") throw new Error("Convite já utilizado não pode ser revogado.");
 
   await prismaDb.invitation.update({
     where: { id: invitationId },
@@ -277,7 +278,7 @@ export async function deleteInvitation(invitationId: string) {
   const actor = await requireActor("invite.delete");
   const invitation = await prismaDb.invitation.findUnique({ where: { id: invitationId } });
 
-  if (!invitation) throw new NotFoundError("Convite nao encontrado.");
+  if (!invitation) throw new NotFoundError("Convite não encontrado.");
 
   assertCanManageInvitation(actor, invitation);
 
@@ -296,20 +297,20 @@ export async function resendInvitation(invitationId: string) {
       where: { id: invitationId }
     });
 
-    if (!invitation) throw new NotFoundError("Convite nao encontrado.");
+    if (!invitation) throw new NotFoundError("Convite não encontrado.");
 
     assertCanManageInvitation(actor, invitation);
 
     const status = getInvitationStatus(invitation);
     if (status === "used") {
-      throw new Error("Convites aceitos nao podem ser reenviados.");
+      throw new Error("Convites aceitos não podem ser reenviados.");
     }
 
     const existingUser = await tx.user.findUnique({
       where: { email: invitation.email }
     });
     if (existingUser) {
-      throw new Error("Ja existe uma conta com este e-mail.");
+      throw new Error("Já existe uma conta com este e-mail.");
     }
 
     if (status === "pending") {

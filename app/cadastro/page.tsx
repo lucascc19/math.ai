@@ -1,10 +1,11 @@
-import Link from "next/link";
 import { ArrowLeft, Mail } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { tryGetCurrentSession } from "@/lib/server/auth";
-import { getHomePathForRole } from "@/lib/role-home";
+
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { getHomePathForRole } from "@/lib/role-home";
+import { tryGetCurrentSession } from "@/lib/server/auth";
 
 export default async function CadastroPage() {
   const session = await tryGetCurrentSession();

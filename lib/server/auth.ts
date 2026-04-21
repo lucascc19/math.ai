@@ -1,5 +1,7 @@
-import { cookies } from "next/headers";
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+
+import { cookies } from "next/headers";
+
 import { prisma } from "@/lib/server/prisma";
 import { generateOpaqueToken, hashToken } from "@/lib/server/token-hash";
 

@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Role } from "@prisma/client";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const prismaMock = {
   user: {
@@ -111,7 +111,7 @@ describe("invitation service", () => {
         email: "admin@example.com",
         role: "ADMIN"
       })
-    ).rejects.toThrow("Tutores so podem convidar alunos.");
+    ).rejects.toThrow("Tutores só podem convidar alunos.");
   });
 
   it("accepts an invitation and creates the user inside the transaction", async () => {
@@ -132,7 +132,7 @@ describe("invitation service", () => {
         findUnique: vi.fn().mockResolvedValue(null),
         create: vi.fn().mockResolvedValue({
           id: "user-1",
-          name: "Novo Usuario",
+          name: "Novo Usuário",
           email: "novo@example.com",
           role: Role.STUDENT
         })
@@ -157,7 +157,7 @@ describe("invitation service", () => {
 
     const result = await acceptInvitation({
       token: "invite-token",
-      name: "Novo Usuario",
+      name: "Novo Usuário",
       password: "senha12345"
     });
 
@@ -165,7 +165,7 @@ describe("invitation service", () => {
     expect(tx.user.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          name: "Novo Usuario",
+          name: "Novo Usuário",
           email: "novo@example.com",
           role: Role.STUDENT,
           passwordHash: "hashed-password"

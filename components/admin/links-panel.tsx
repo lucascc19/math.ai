@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link2, Trash2 } from "lucide-react";
+import { useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -138,11 +139,11 @@ function SelectField({
       <span className="font-medium text-neutral-10/70 dark:text-neutral-80">{label}</span>
       <Select value={value || "__none__"} onValueChange={(nextValue) => onChange(nextValue === "__none__" ? "" : nextValue)}>
         <SelectTrigger>
-          <SelectValue placeholder={options.length === 0 ? "Nenhum disponivel" : `Selecione ${label.toLowerCase()}`} />
+          <SelectValue placeholder={options.length === 0 ? "Nenhum disponível" : `Selecione ${label.toLowerCase()}`} />
         </SelectTrigger>
         <SelectContent>
           {options.length === 0 ? (
-            <SelectItem value="__none__">Nenhum disponivel</SelectItem>
+            <SelectItem value="__none__">Nenhum disponível</SelectItem>
           ) : (
             options.map((opt) => (
               <SelectItem key={opt.id} value={opt.id}>

@@ -1,6 +1,9 @@
+import "katex/dist/katex.min.css";
 import type { Metadata } from "next";
 import { Lexend } from "next/font/google";
+
 import { Providers } from "@/components/providers";
+
 import "./globals.css";
 
 const lexend = Lexend({

@@ -1,16 +1,17 @@
 "use client";
 
-import Link from "next/link";
-import type { Route } from "next";
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, BookOpen } from "lucide-react";
-import { api, type DashboardResponse } from "@/lib/api";
-import { useAppStore } from "@/store/app-store";
+import { ArrowRight, BookOpen, Clock3, Target } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
+import { useEffect } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { api, type DashboardResponse } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useAppStore } from "@/store/app-store";
 
 const accentStyles = {
   primary: "border-primary-60/24 bg-primary-95",
@@ -66,10 +67,10 @@ export function StudentTracks() {
         <Card className="grid gap-3 bg-white/88">
           <div className="flex items-center gap-3">
             <BookOpen className="h-5 w-5 text-primary-40" />
-            <strong className="text-lg text-neutral-10">Nenhuma trilha disponivel</strong>
+            <strong className="text-lg text-neutral-10">Nenhuma trilha disponível</strong>
           </div>
           <p className="text-sm leading-6 text-neutral-10/72">
-            Assim que uma trilha com licoes publicadas estiver disponivel, ela vai aparecer aqui.
+            Assim que uma trilha com lições publicadas estiver disponível, ela vai aparecer aqui.
           </p>
         </Card>
       ) : (
@@ -94,6 +95,31 @@ export function StudentTracks() {
                 </Badge>
               </div>
               <p className="text-sm leading-6 text-neutral-10/75">{skill.description}</p>
+              <div className="grid gap-1 rounded-2xl border border-black/6 bg-white/45 px-4 py-3">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-neutral-10/55">
+                  Módulo atual
+                </span>
+                <strong className="text-sm text-neutral-10">{skill.currentLesson.moduleTitle}</strong>
+                <span className="text-xs text-neutral-10/65">{skill.currentLesson.title}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-neutral-10/68">
+                {skill.difficulty ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/65 px-2.5 py-1">
+                    <Target className="h-3 w-3" />
+                    {skill.difficulty}
+                  </span>
+                ) : null}
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/65 px-2.5 py-1">
+                  <Clock3 className="h-3 w-3" />
+                  {skill.currentLesson.estimatedMinutes ? `${skill.currentLesson.estimatedMinutes} min na lição atual` : "ritmo livre"}
+                </span>
+                {skill.modules?.length ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/65 px-2.5 py-1">
+                    <BookOpen className="h-3 w-3" />
+                    {skill.modules.length} {skill.modules.length === 1 ? "módulo" : "módulos"}
+                  </span>
+                ) : null}
+              </div>
               <div className="grid gap-2">
                 <Progress value={skill.progress.mastery} label={`Dominio atual: ${skill.progress.mastery}%`} />
                 <div className="flex items-center justify-between gap-3 text-xs text-neutral-10/65">
@@ -101,6 +127,9 @@ export function StudentTracks() {
                   <span>{skill.progress.correct} acertos</span>
                 </div>
               </div>
+              {skill.targetAudience && (
+                <p className="text-xs leading-5 text-neutral-10/65">{skill.targetAudience}</p>
+              )}
               <span className="inline-flex items-center text-sm font-semibold text-primary-40">
                 Abrir trilha
                 <ArrowRight className="ml-2 h-4 w-4" />
