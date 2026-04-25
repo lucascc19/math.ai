@@ -69,9 +69,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? "Salvando..." : "Redefinir senha"}
           </Button>
-          {mutation.error && (
-            <p className="text-sm text-tertiary-30 dark:text-tertiary-70">{mutation.error.message}</p>
-          )}
+          {mutation.error && <p className="text-sm text-tertiary-30 dark:text-tertiary-70">{mutation.error.message}</p>}
         </form>
       )}
     </Card>
