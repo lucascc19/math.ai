@@ -5,13 +5,19 @@ import { ContentStatus } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, BookOpen, FileText, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { api, type AdminTrack } from "@/lib/api";
@@ -114,7 +120,10 @@ function TrackRow({ track }: { track: AdminTrack }) {
             <FileText className="h-3.5 w-3.5" />
             {isPublished ? "Despublicar" : "Publicar"}
           </DropdownMenuItem>
-          <DropdownMenuItem asChild className="text-primary-40 hover:bg-primary-95 dark:text-primary-70 dark:hover:bg-primary-20/30">
+          <DropdownMenuItem
+            asChild
+            className="text-primary-40 hover:bg-primary-95 dark:text-primary-70 dark:hover:bg-primary-20/30"
+          >
             <Link href={`/admin/conteudo/${track.id}`}>
               <ArrowRight className="h-3.5 w-3.5" />
               Editar trilha
@@ -197,26 +206,52 @@ function CreateTrackForm({ onSuccess }: { onSuccess: () => void }) {
 
       <form className="grid gap-5" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
         <section className="grid gap-3 md:grid-cols-2">
-          <Input placeholder="Slug (ex: fracoes)" {...form.register("slug")} />
-          <Input placeholder="Nome" {...form.register("name")} />
-          <Input placeholder="Tempo estimado (ex: 4 semanas)" {...form.register("estimatedTime")} />
-          <Input placeholder="Nível sugerido (ex: Fundamental II)" {...form.register("difficulty")} />
-          <Input placeholder="Público-alvo" {...form.register("targetAudience")} className="md:col-span-2" />
+          <Field label="Slug">
+            <Input placeholder="Ex: fracoes" {...form.register("slug")} />
+          </Field>
+          <Field label="Nome da trilha">
+            <Input placeholder="Nome" {...form.register("name")} />
+          </Field>
+          <Field label="Tempo estimado">
+            <Input placeholder="Ex: 4 semanas" {...form.register("estimatedTime")} />
+          </Field>
+          <Field label="Nível sugerido">
+            <Input placeholder="Ex: Fundamental II" {...form.register("difficulty")} />
+          </Field>
+          <Field label="Público-alvo" className="md:col-span-2">
+            <Input placeholder="Público-alvo" {...form.register("targetAudience")} />
+          </Field>
         </section>
 
         <section className="grid gap-3">
-          <Textarea placeholder="Descrição curta para listagens" {...form.register("description")} className="min-h-24" />
-          <Textarea placeholder="Descrição longa em Markdown" {...form.register("longDescriptionMd")} className="min-h-40" />
-          <Textarea
-            placeholder="Objetivos de aprendizagem em Markdown"
-            {...form.register("learningOutcomesMd")}
-            className="min-h-28"
-          />
-          <Textarea
-            placeholder="Pré-requisitos em Markdown"
-            {...form.register("prerequisiteSummaryMd")}
-            className="min-h-28"
-          />
+          <Field label="Descrição curta">
+            <Textarea
+              placeholder="Descrição curta para listagens"
+              {...form.register("description")}
+              className="min-h-24"
+            />
+          </Field>
+          <Field label="Descrição longa">
+            <Textarea
+              placeholder="Descrição longa em Markdown"
+              {...form.register("longDescriptionMd")}
+              className="min-h-40"
+            />
+          </Field>
+          <Field label="Objetivos de aprendizagem">
+            <Textarea
+              placeholder="Objetivos de aprendizagem em Markdown"
+              {...form.register("learningOutcomesMd")}
+              className="min-h-28"
+            />
+          </Field>
+          <Field label="Pré-requisitos">
+            <Textarea
+              placeholder="Pré-requisitos em Markdown"
+              {...form.register("prerequisiteSummaryMd")}
+              className="min-h-28"
+            />
+          </Field>
         </section>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -229,5 +264,14 @@ function CreateTrackForm({ onSuccess }: { onSuccess: () => void }) {
         </div>
       </form>
     </Card>
+  );
+}
+
+function Field({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
+  return (
+    <label className={`grid gap-2 text-sm ${className ?? ""}`}>
+      <span className="font-semibold text-neutral-10 dark:text-neutral-95">{label}</span>
+      {children}
+    </label>
   );
 }

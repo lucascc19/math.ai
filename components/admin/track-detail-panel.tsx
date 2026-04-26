@@ -7,6 +7,7 @@ import { ArrowDown, ArrowLeft, ArrowUp, Clock3, FolderTree, Plus, Sparkles, Tras
 import { Controller } from "react-hook-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 
@@ -70,6 +71,24 @@ const ACTIVITY_TYPE_LABELS: Record<string, string> = {
   SHORT_TEXT: "Texto curto"
 };
 
+function Field({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
+  return (
+    <label className={`grid gap-2 text-sm ${className ?? ""}`}>
+      <span className="font-semibold text-neutral-10 dark:text-neutral-95">{label}</span>
+      {children}
+    </label>
+  );
+}
+
+function SelectField({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
+  return (
+    <div className={`grid gap-2 text-sm ${className ?? ""}`}>
+      <span className="font-semibold text-neutral-10 dark:text-neutral-95">{label}</span>
+      {children}
+    </div>
+  );
+}
+
 const LESSON_TEMPLATES: LessonTemplate[] = [
   {
     id: "theory-first",
@@ -92,8 +111,19 @@ const LESSON_TEMPLATES: LessonTemplate[] = [
       tip: "Volte ao exemplo resolvido e compare os passos.",
       blocks: [
         { type: "SUMMARY", title: "Resumo", contentMd: "Introducao conceitual com exemplo resolvido.", orderIndex: 0 },
-        { type: "THEORY", title: "Explicacao", contentMd: "## Conceito\n\nExplique a ideia central da licao com linguagem direta.\n\n## Exemplo resolvido\n\nMostre um exemplo passo a passo.\n\n## Ponto de atencao\n\nDestaque um erro comum ou uma observacao importante.", orderIndex: 1 },
-        { type: "PRACTICE_INTRO", title: "Atividade", contentMd: "Leia a explicacao e resolva a checagem para confirmar o entendimento.", orderIndex: 2 }
+        {
+          type: "THEORY",
+          title: "Explicacao",
+          contentMd:
+            "## Conceito\n\nExplique a ideia central da licao com linguagem direta.\n\n## Exemplo resolvido\n\nMostre um exemplo passo a passo.\n\n## Ponto de atencao\n\nDestaque um erro comum ou uma observacao importante.",
+          orderIndex: 1
+        },
+        {
+          type: "PRACTICE_INTRO",
+          title: "Atividade",
+          contentMd: "Leia a explicacao e resolva a checagem para confirmar o entendimento.",
+          orderIndex: 2
+        }
       ],
       activities: [
         {
@@ -130,8 +160,19 @@ const LESSON_TEMPLATES: LessonTemplate[] = [
       tip: "Separe os dados antes de calcular.",
       blocks: [
         { type: "SUMMARY", title: "Resumo", contentMd: "Exercicio guiado para aplicar o conceito.", orderIndex: 0 },
-        { type: "THEORY", title: "Antes de resolver", contentMd: "## Antes de resolver\n\nRetome a regra ou estrategia que sera usada.\n\n## Caminho sugerido\n\n1. Identifique os dados do problema.\n2. Escolha a operacao ou relacao adequada.\n3. Resolva e confira a resposta.", orderIndex: 1 },
-        { type: "PRACTICE_INTRO", title: "Atividade", contentMd: "Resolva a atividade seguindo os passos sugeridos.", orderIndex: 2 }
+        {
+          type: "THEORY",
+          title: "Antes de resolver",
+          contentMd:
+            "## Antes de resolver\n\nRetome a regra ou estrategia que sera usada.\n\n## Caminho sugerido\n\n1. Identifique os dados do problema.\n2. Escolha a operacao ou relacao adequada.\n3. Resolva e confira a resposta.",
+          orderIndex: 1
+        },
+        {
+          type: "PRACTICE_INTRO",
+          title: "Atividade",
+          contentMd: "Resolva a atividade seguindo os passos sugeridos.",
+          orderIndex: 2
+        }
       ],
       activities: [
         {
@@ -168,8 +209,19 @@ const LESSON_TEMPLATES: LessonTemplate[] = [
       tip: "Observe legendas, medidas, eixos ou marcacoes antes de responder.",
       blocks: [
         { type: "SUMMARY", title: "Resumo", contentMd: "Licao com foco em representacao visual.", orderIndex: 0 },
-        { type: "VISUAL", title: "Representacao visual", contentMd: "## Observe\n\nDescreva aqui a figura, tabela, grafico ou diagrama que sera usado.\n\n## Interpretacao\n\nExplique como ler os elementos visuais e o que eles representam.", orderIndex: 1 },
-        { type: "PRACTICE_INTRO", title: "Atividade", contentMd: "Use a representacao visual para responder a atividade.", orderIndex: 2 }
+        {
+          type: "VISUAL",
+          title: "Representacao visual",
+          contentMd:
+            "## Observe\n\nDescreva aqui a figura, tabela, grafico ou diagrama que sera usado.\n\n## Interpretacao\n\nExplique como ler os elementos visuais e o que eles representam.",
+          orderIndex: 1
+        },
+        {
+          type: "PRACTICE_INTRO",
+          title: "Atividade",
+          contentMd: "Use a representacao visual para responder a atividade.",
+          orderIndex: 2
+        }
       ],
       activities: [
         {
@@ -206,8 +258,19 @@ const LESSON_TEMPLATES: LessonTemplate[] = [
       tip: "Compare sua resposta com os pontos-chave do resumo.",
       blocks: [
         { type: "SUMMARY", title: "Resumo", contentMd: "Revisao curta dos pontos principais.", orderIndex: 0 },
-        { type: "THEORY", title: "Pontos-chave", contentMd: "## Resumo\n\nRetome as ideias principais da aula.\n\n## Pontos-chave\n\n- Primeiro ponto importante\n- Segundo ponto importante\n- Erro comum a evitar", orderIndex: 1 },
-        { type: "PRACTICE_INTRO", title: "Checkpoint", contentMd: "Responda ao checkpoint para verificar se esta pronto para seguir.", orderIndex: 2 }
+        {
+          type: "THEORY",
+          title: "Pontos-chave",
+          contentMd:
+            "## Resumo\n\nRetome as ideias principais da aula.\n\n## Pontos-chave\n\n- Primeiro ponto importante\n- Segundo ponto importante\n- Erro comum a evitar",
+          orderIndex: 1
+        },
+        {
+          type: "PRACTICE_INTRO",
+          title: "Checkpoint",
+          contentMd: "Responda ao checkpoint para verificar se esta pronto para seguir.",
+          orderIndex: 2
+        }
       ],
       activities: [
         {
@@ -244,8 +307,19 @@ const LESSON_TEMPLATES: LessonTemplate[] = [
       tip: "Quebre o problema em etapas e resolva uma parte por vez.",
       blocks: [
         { type: "SUMMARY", title: "Resumo", contentMd: "Desafio para aplicar mais de uma ideia.", orderIndex: 0 },
-        { type: "THEORY", title: "Estrategia", contentMd: "## Desafio\n\nApresente um problema que combine conceitos ja estudados.\n\n## Estrategia\n\nOriente o aluno a decompor o problema em partes menores.", orderIndex: 1 },
-        { type: "PRACTICE_INTRO", title: "Atividade", contentMd: "Resolva o desafio e registre o resultado final.", orderIndex: 2 }
+        {
+          type: "THEORY",
+          title: "Estrategia",
+          contentMd:
+            "## Desafio\n\nApresente um problema que combine conceitos ja estudados.\n\n## Estrategia\n\nOriente o aluno a decompor o problema em partes menores.",
+          orderIndex: 1
+        },
+        {
+          type: "PRACTICE_INTRO",
+          title: "Atividade",
+          contentMd: "Resolva o desafio e registre o resultado final.",
+          orderIndex: 2
+        }
       ],
       activities: [
         {
@@ -281,7 +355,12 @@ const LESSON_TEMPLATES: LessonTemplate[] = [
       tip: "Procure a alternativa que melhor combina com a definicao.",
       blocks: [
         { type: "SUMMARY", title: "Resumo", contentMd: "Checagem rapida de entendimento.", orderIndex: 0 },
-        { type: "THEORY", title: "Antes do quiz", contentMd: "## Antes do quiz\n\nLeia a pergunta com atencao e escolha a melhor alternativa.", orderIndex: 1 },
+        {
+          type: "THEORY",
+          title: "Antes do quiz",
+          contentMd: "## Antes do quiz\n\nLeia a pergunta com atencao e escolha a melhor alternativa.",
+          orderIndex: 1
+        },
         { type: "PRACTICE_INTRO", title: "Quiz", contentMd: "Responda ao quiz rapido.", orderIndex: 2 }
       ],
       activities: [
@@ -472,30 +551,48 @@ function TrackEditForm({ track, onSuccess }: { track: AdminTrackDetail; onSucces
 
       <form className="grid gap-5" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
         <section className="grid gap-3 md:grid-cols-2">
-          <Input placeholder="Slug" {...form.register("slug")} />
-          <Input placeholder="Nome" {...form.register("name")} />
-          <Input placeholder="Tempo estimado" {...form.register("estimatedTime")} />
-          <Input placeholder="Dificuldade (ex: Fundamental II)" {...form.register("difficulty")} />
-          <Input placeholder="Público-alvo" {...form.register("targetAudience")} className="md:col-span-2" />
+          <Field label="Slug">
+            <Input placeholder="Slug" {...form.register("slug")} />
+          </Field>
+          <Field label="Nome da trilha">
+            <Input placeholder="Nome" {...form.register("name")} />
+          </Field>
+          <Field label="Tempo estimado">
+            <Input placeholder="Tempo estimado" {...form.register("estimatedTime")} />
+          </Field>
+          <Field label="Dificuldade">
+            <Input placeholder="Ex: Fundamental II" {...form.register("difficulty")} />
+          </Field>
+          <Field label="Público-alvo" className="md:col-span-2">
+            <Input placeholder="Público-alvo" {...form.register("targetAudience")} />
+          </Field>
         </section>
 
         <section className="grid gap-3">
-          <Textarea placeholder="Descrição curta" {...form.register("description")} className="min-h-24" />
-          <Textarea
-            placeholder="Descrição longa em Markdown"
-            {...form.register("longDescriptionMd")}
-            className="min-h-40"
-          />
-          <Textarea
-            placeholder="Objetivos de aprendizagem em Markdown"
-            {...form.register("learningOutcomesMd")}
-            className="min-h-28"
-          />
-          <Textarea
-            placeholder="Pré-requisitos em Markdown"
-            {...form.register("prerequisiteSummaryMd")}
-            className="min-h-28"
-          />
+          <Field label="Descrição curta">
+            <Textarea placeholder="Descrição curta" {...form.register("description")} className="min-h-24" />
+          </Field>
+          <Field label="Descrição longa">
+            <Textarea
+              placeholder="Descrição longa em Markdown"
+              {...form.register("longDescriptionMd")}
+              className="min-h-40"
+            />
+          </Field>
+          <Field label="Objetivos de aprendizagem">
+            <Textarea
+              placeholder="Objetivos de aprendizagem em Markdown"
+              {...form.register("learningOutcomesMd")}
+              className="min-h-28"
+            />
+          </Field>
+          <Field label="Pré-requisitos">
+            <Textarea
+              placeholder="Pré-requisitos em Markdown"
+              {...form.register("prerequisiteSummaryMd")}
+              className="min-h-28"
+            />
+          </Field>
         </section>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -540,14 +637,22 @@ function CreateModuleForm({
     <Card className="grid gap-3 rounded-2xl border border-primary-60/20 bg-primary-95 p-6 shadow-soft dark:border-primary-60/30 dark:bg-primary-20/40">
       <Badge variant="primary">Novo módulo</Badge>
       <form className="grid gap-3 md:grid-cols-2" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
-        <Input placeholder="Título do módulo" {...form.register("title")} className="md:col-span-2" />
-        <Input type="number" placeholder="Tempo estimado em minutos" {...form.register("estimatedMinutes")} />
-        <Input type="number" placeholder="Ordem" {...form.register("orderIndex")} />
-        <Textarea
-          placeholder="Descrição do módulo em Markdown"
-          {...form.register("descriptionMd")}
-          className="md:col-span-2 min-h-28"
-        />
+        <Field label="Título do módulo" className="md:col-span-2">
+          <Input placeholder="Título do módulo" {...form.register("title")} />
+        </Field>
+        <Field label="Tempo estimado em minutos">
+          <Input type="number" placeholder="Tempo estimado em minutos" {...form.register("estimatedMinutes")} />
+        </Field>
+        <Field label="Ordem">
+          <Input type="number" placeholder="Ordem" {...form.register("orderIndex")} />
+        </Field>
+        <Field label="Descrição do módulo" className="md:col-span-2">
+          <Textarea
+            placeholder="Descrição do módulo em Markdown"
+            {...form.register("descriptionMd")}
+            className="min-h-28"
+          />
+        </Field>
         <div className="md:col-span-2 flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? "Criando..." : "Criar módulo"}
@@ -721,14 +826,22 @@ function ModuleEditForm({ module, onSuccess }: { module: AdminTrackModule; onSuc
   return (
     <div className="grid gap-3 rounded-[18px] border border-black/10 bg-white/80 p-4 dark:border-white/15 dark:bg-neutral-20/60">
       <form className="grid gap-3 md:grid-cols-2" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
-        <Input placeholder="Título do módulo" {...form.register("title")} className="md:col-span-2" />
-        <Input type="number" placeholder="Tempo estimado em minutos" {...form.register("estimatedMinutes")} />
-        <Input type="number" placeholder="Ordem" {...form.register("orderIndex")} />
-        <Textarea
-          placeholder="Descrição do módulo em Markdown"
-          {...form.register("descriptionMd")}
-          className="md:col-span-2 min-h-28"
-        />
+        <Field label="Título do módulo" className="md:col-span-2">
+          <Input placeholder="Título do módulo" {...form.register("title")} />
+        </Field>
+        <Field label="Tempo estimado em minutos">
+          <Input type="number" placeholder="Tempo estimado em minutos" {...form.register("estimatedMinutes")} />
+        </Field>
+        <Field label="Ordem">
+          <Input type="number" placeholder="Ordem" {...form.register("orderIndex")} />
+        </Field>
+        <Field label="Descrição do módulo" className="md:col-span-2">
+          <Textarea
+            placeholder="Descrição do módulo em Markdown"
+            {...form.register("descriptionMd")}
+            className="min-h-28"
+          />
+        </Field>
         <div className="md:col-span-2 flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? "Salvando..." : "Salvar módulo"}
@@ -1060,7 +1173,12 @@ function LessonFormFields({
     name: "activities"
   });
 
-  const { fields: blockFields, append: appendBlock, remove: removeBlock, move: moveBlock } = useFieldArray({
+  const {
+    fields: blockFields,
+    append: appendBlock,
+    remove: removeBlock,
+    move: moveBlock
+  } = useFieldArray({
     control: form.control,
     name: "blocks"
   });
@@ -1136,15 +1254,26 @@ function LessonFormFields({
       </div>
 
       <section className={`grid gap-3 md:grid-cols-2 ${activeTab === "structure" ? "" : "hidden"}`}>
-        <Input placeholder="Título" {...form.register("title")} />
-        <Input placeholder="Resumo rápido da lição" {...form.register("summary")} />
-        <Input placeholder="Nível (ex: Iniciante)" {...form.register("level")} />
-        <Input placeholder="Objetivo" {...form.register("goal")} />
-        <Input placeholder="Tipo (EXPLANATION, PRACTICE, QUIZ, REVIEW)" {...form.register("lessonType")} />
-        <Input type="number" placeholder="Tempo estimado em minutos" {...form.register("estimatedMinutes")} />
+        <Field label="Título">
+          <Input placeholder="Título" {...form.register("title")} />
+        </Field>
+        <Field label="Resumo da lição">
+          <Input placeholder="Resumo rápido da lição" {...form.register("summary")} />
+        </Field>
+        <Field label="Nível">
+          <Input placeholder="Ex: Iniciante" {...form.register("level")} />
+        </Field>
+        <Field label="Objetivo">
+          <Input placeholder="Objetivo" {...form.register("goal")} />
+        </Field>
+        <Field label="Tipo da lição">
+          <Input placeholder="EXPLANATION, PRACTICE, QUIZ, REVIEW" {...form.register("lessonType")} />
+        </Field>
+        <Field label="Tempo estimado em minutos">
+          <Input type="number" placeholder="Tempo estimado em minutos" {...form.register("estimatedMinutes")} />
+        </Field>
         {modules ? (
-          <div className="grid gap-2 md:col-span-2">
-            <span className="text-sm font-semibold text-neutral-10 dark:text-neutral-95">Modulo</span>
+          <SelectField label="Módulo" className="md:col-span-2">
             <Controller
               control={form.control}
               name="trackModuleId"
@@ -1163,7 +1292,7 @@ function LessonFormFields({
                 </Select>
               )}
             />
-          </div>
+          </SelectField>
         ) : null}
       </section>
 
@@ -1172,17 +1301,27 @@ function LessonFormFields({
           <Sparkles className="h-4 w-4 text-primary-40" />
           Conteúdo do aluno
         </div>
-        <Textarea
-          placeholder="Teoria, exemplos e explicações em Markdown"
-          {...form.register("contentMd")}
-          className="min-h-40"
-        />
-        <Textarea
-          placeholder="Enunciado legado da lição em Markdown"
-          {...form.register("instructionMd")}
-          className="min-h-28"
-        />
-        <Textarea placeholder="Notas internas do professor" {...form.register("teacherNotesMd")} className="min-h-28" />
+        <Field label="Conteúdo principal">
+          <Textarea
+            placeholder="Teoria, exemplos e explicações em Markdown"
+            {...form.register("contentMd")}
+            className="min-h-40"
+          />
+        </Field>
+        <Field label="Enunciado legado">
+          <Textarea
+            placeholder="Enunciado legado da lição em Markdown"
+            {...form.register("instructionMd")}
+            className="min-h-28"
+          />
+        </Field>
+        <Field label="Notas internas do professor">
+          <Textarea
+            placeholder="Notas internas do professor"
+            {...form.register("teacherNotesMd")}
+            className="min-h-28"
+          />
+        </Field>
       </section>
 
       <section
@@ -1240,30 +1379,36 @@ function LessonFormFields({
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                  <Controller
-                    control={form.control}
-                    name={`blocks.${index}.type`}
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Tipo do bloco" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {lessonBlockTypeSchema.options.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {BLOCK_TYPE_LABELS[type] ?? type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  <Input placeholder="Titulo do bloco" {...form.register(`blocks.${index}.title`)} />
-                  <Textarea
-                    placeholder="Conteudo do bloco em Markdown"
-                    {...form.register(`blocks.${index}.contentMd`)}
-                    className="md:col-span-2 min-h-28"
-                  />
+                  <SelectField label="Tipo do bloco">
+                    <Controller
+                      control={form.control}
+                      name={`blocks.${index}.type`}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Tipo do bloco" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {lessonBlockTypeSchema.options.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {BLOCK_TYPE_LABELS[type] ?? type}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </SelectField>
+                  <Field label="Título do bloco">
+                    <Input placeholder="Título do bloco" {...form.register(`blocks.${index}.title`)} />
+                  </Field>
+                  <Field label="Conteúdo do bloco" className="md:col-span-2">
+                    <Textarea
+                      placeholder="Conteúdo do bloco em Markdown"
+                      {...form.register(`blocks.${index}.contentMd`)}
+                      className="min-h-28"
+                    />
+                  </Field>
                 </div>
               </Card>
             ))
@@ -1272,12 +1417,24 @@ function LessonFormFields({
       </section>
 
       <section className={`grid gap-3 md:grid-cols-2 ${activeTab === "publishing" ? "" : "hidden"}`}>
-        <Textarea placeholder="Enunciado curto legado" {...form.register("prompt")} className="min-h-24" />
-        <Textarea placeholder="História ou contexto" {...form.register("story")} className="min-h-24" />
-        <Textarea placeholder="Explicação da resposta" {...form.register("explanation")} className="min-h-24" />
-        <Textarea placeholder="Dica geral" {...form.register("tip")} className="min-h-24" />
-        <Input type="number" placeholder="Resposta numérica legada" {...form.register("answer")} />
-        <Input type="number" placeholder="Ordem da lição" {...form.register("orderIndex")} />
+        <Field label="Enunciado curto legado">
+          <Textarea placeholder="Enunciado curto legado" {...form.register("prompt")} className="min-h-24" />
+        </Field>
+        <Field label="História ou contexto">
+          <Textarea placeholder="História ou contexto" {...form.register("story")} className="min-h-24" />
+        </Field>
+        <Field label="Explicação da resposta">
+          <Textarea placeholder="Explicação da resposta" {...form.register("explanation")} className="min-h-24" />
+        </Field>
+        <Field label="Dica geral">
+          <Textarea placeholder="Dica geral" {...form.register("tip")} className="min-h-24" />
+        </Field>
+        <Field label="Resposta numérica legada">
+          <Input type="number" placeholder="Resposta numérica legada" {...form.register("answer")} />
+        </Field>
+        <Field label="Ordem da lição">
+          <Input type="number" placeholder="Ordem da lição" {...form.register("orderIndex")} />
+        </Field>
         <div className="grid gap-2 rounded-2xl border border-black/8 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/40 md:col-span-2">
           <span className="text-sm font-semibold text-neutral-10 dark:text-neutral-95">Checklist editorial</span>
           <div className="flex flex-wrap gap-2">
@@ -1353,81 +1510,99 @@ function LessonFormFields({
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                  <Controller
-                    control={form.control}
-                    name={`activities.${index}.type`}
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Tipo da atividade" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {lessonActivityTypeSchema.options.map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {ACTIVITY_TYPE_LABELS[type] ?? type}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {activityType === lessonActivityTypeSchema.enum.TRUE_FALSE ? (
+                  <SelectField label="Tipo da atividade">
                     <Controller
                       control={form.control}
-                      name={`activities.${index}.answerKey`}
+                      name={`activities.${index}.type`}
                       render={({ field }) => (
                         <Select value={field.value} onValueChange={field.onChange}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Resposta correta" />
+                            <SelectValue placeholder="Tipo da atividade" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="verdadeiro">Verdadeiro</SelectItem>
-                            <SelectItem value="falso">Falso</SelectItem>
+                            {lessonActivityTypeSchema.options.map((type) => (
+                              <SelectItem key={type} value={type}>
+                                {ACTIVITY_TYPE_LABELS[type] ?? type}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       )}
                     />
+                  </SelectField>
+                  {activityType === lessonActivityTypeSchema.enum.TRUE_FALSE ? (
+                    <SelectField label="Resposta correta">
+                      <Controller
+                        control={form.control}
+                        name={`activities.${index}.answerKey`}
+                        render={({ field }) => (
+                          <Select value={field.value} onValueChange={field.onChange}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Resposta correta" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="verdadeiro">Verdadeiro</SelectItem>
+                              <SelectItem value="falso">Falso</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    </SelectField>
                   ) : (
-                    <Input
-                      placeholder={
-                        activityType === lessonActivityTypeSchema.enum.SHORT_TEXT
-                          ? "Resposta textual esperada"
-                          : "Resposta correta"
-                      }
-                      {...form.register(`activities.${index}.answerKey`)}
-                    />
+                    <Field label="Resposta correta">
+                      <Input
+                        placeholder={
+                          activityType === lessonActivityTypeSchema.enum.SHORT_TEXT
+                            ? "Resposta textual esperada"
+                            : "Resposta correta"
+                        }
+                        {...form.register(`activities.${index}.answerKey`)}
+                      />
+                    </Field>
                   )}
-                  <Textarea
-                    placeholder="Enunciado da atividade em Markdown"
-                    {...form.register(`activities.${index}.instructionMd`)}
-                    className="md:col-span-2 min-h-28"
-                  />
-                  <Textarea
-                    placeholder="Dica da atividade"
-                    {...form.register(`activities.${index}.hintMd`)}
-                    className="min-h-24"
-                  />
-                  <Textarea
-                    placeholder="Feedback quando acertar"
-                    {...form.register(`activities.${index}.feedbackCorrectMd`)}
-                    className="min-h-24"
-                  />
-                  <Textarea
-                    placeholder="Feedback quando errar"
-                    {...form.register(`activities.${index}.feedbackIncorrectMd`)}
-                    className="min-h-24"
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Ordem da atividade"
-                    {...form.register(`activities.${index}.orderIndex`)}
-                  />
-                  {activityType === lessonActivityTypeSchema.enum.MULTIPLE_CHOICE ? (
+                  <Field label="Enunciado da atividade" className="md:col-span-2">
                     <Textarea
-                      placeholder="Opções da múltipla escolha, uma por linha"
-                      {...form.register(`activities.${index}.choiceOptionsText`)}
-                      className="md:col-span-2 min-h-28"
+                      placeholder="Enunciado da atividade em Markdown"
+                      {...form.register(`activities.${index}.instructionMd`)}
+                      className="min-h-28"
                     />
+                  </Field>
+                  <Field label="Dica da atividade">
+                    <Textarea
+                      placeholder="Dica da atividade"
+                      {...form.register(`activities.${index}.hintMd`)}
+                      className="min-h-24"
+                    />
+                  </Field>
+                  <Field label="Feedback quando acertar">
+                    <Textarea
+                      placeholder="Feedback quando acertar"
+                      {...form.register(`activities.${index}.feedbackCorrectMd`)}
+                      className="min-h-24"
+                    />
+                  </Field>
+                  <Field label="Feedback quando errar">
+                    <Textarea
+                      placeholder="Feedback quando errar"
+                      {...form.register(`activities.${index}.feedbackIncorrectMd`)}
+                      className="min-h-24"
+                    />
+                  </Field>
+                  <Field label="Ordem da atividade">
+                    <Input
+                      type="number"
+                      placeholder="Ordem da atividade"
+                      {...form.register(`activities.${index}.orderIndex`)}
+                    />
+                  </Field>
+                  {activityType === lessonActivityTypeSchema.enum.MULTIPLE_CHOICE ? (
+                    <Field label="Opções da múltipla escolha" className="md:col-span-2">
+                      <Textarea
+                        placeholder="Opções da múltipla escolha, uma por linha"
+                        {...form.register(`activities.${index}.choiceOptionsText`)}
+                        className="min-h-28"
+                      />
+                    </Field>
                   ) : null}
                 </div>
 
