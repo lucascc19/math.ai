@@ -22,6 +22,7 @@ import type { InvitationStatus } from "@/lib/server/invitations";
 
 export type AdminLessonType = "EXPLANATION" | "PRACTICE" | "QUIZ" | "REVIEW";
 export type AdminLessonActivityType = LessonActivityDraftInput["type"];
+export type AdminLessonBlockType = "THEORY" | "EXAMPLE" | "VISUAL" | "PRACTICE_INTRO" | "SUMMARY";
 
 async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
   const response = await fetch(input, {
@@ -262,7 +263,17 @@ export type AdminLesson = {
   tip: string;
   orderIndex: number;
   status: ContentStatus;
+  blocks: AdminLessonBlock[];
   activities: AdminLessonActivity[];
+};
+
+export type AdminLessonBlock = {
+  id: string;
+  lessonId: string;
+  type: AdminLessonBlockType;
+  title: string;
+  contentMd: string;
+  orderIndex: number;
 };
 
 export type AdminLessonActivity = {
@@ -309,6 +320,14 @@ export type StudentModuleSummary = {
     explanation: string;
     level: string;
     goal: string;
+    tip: string;
+    blocks: Array<{
+      id: string;
+      type: AdminLessonBlockType;
+      title: string;
+      contentMd: string;
+      orderIndex: number;
+    }>;
     activity: {
       id: string;
       type: AdminLessonActivityType;

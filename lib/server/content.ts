@@ -32,6 +32,62 @@ function serializeActivityOptions(activity: LessonActivityDraftInput) {
   );
 }
 
+function buildDefaultLessonBlocks(lesson: {
+  summary?: string;
+  contentMd?: string;
+  explanation?: string;
+  instructionMd?: string;
+  prompt?: string;
+}) {
+  return [
+    {
+      type: "SUMMARY",
+      title: "Resumo",
+      contentMd: lesson.summary ?? "",
+      orderIndex: 0
+    },
+    {
+      type: "THEORY",
+      title: "Explicacao",
+      contentMd: lesson.contentMd || lesson.explanation || "",
+      orderIndex: 1
+    },
+    {
+      type: "PRACTICE_INTRO",
+      title: "Atividade",
+      contentMd: lesson.instructionMd || lesson.prompt || "",
+      orderIndex: 2
+    }
+  ].filter((block) => block.contentMd.trim().length > 0);
+}
+
+async function syncDefaultLessonBlocks(db: any, lessonId: string) {
+  const lesson = await db.lesson.findUnique({
+    where: { id: lessonId },
+    select: {
+      summary: true,
+      contentMd: true,
+      explanation: true,
+      instructionMd: true,
+      prompt: true
+    }
+  });
+
+  if (!lesson) return;
+
+  await db.lessonBlock.deleteMany({ where: { lessonId } });
+
+  const blocks = buildDefaultLessonBlocks(lesson);
+  if (blocks.length === 0) return;
+
+  await db.lessonBlock.createMany({
+    data: blocks.map((block) => ({
+      lessonId,
+      ...block
+    }))
+  });
+}
+
 async function normalizeLessonOrderIndices(db: any, moduleId: string) {
   const lessons = await db.lesson.findMany({
     where: { trackModuleId: moduleId },
@@ -106,6 +162,7 @@ export async function getTrackWithLessons(trackId: string) {
           lessons: {
             orderBy: { orderIndex: "asc" },
             include: {
+              blocks: { orderBy: { orderIndex: "asc" } },
               activities: { orderBy: { orderIndex: "asc" } }
             }
           }
@@ -275,9 +332,13 @@ export async function createDraftLesson(input: LessonDraftInput) {
           feedbackIncorrectMd: activity.feedbackIncorrectMd,
           orderIndex: activity.orderIndex
         }))
+      },
+      blocks: {
+        create: input.blocks?.length ? input.blocks : buildDefaultLessonBlocks(input)
       }
     },
     include: {
+      blocks: { orderBy: { orderIndex: "asc" } },
       activities: { orderBy: { orderIndex: "asc" } }
     }
   });
@@ -303,6 +364,7 @@ export async function updateLesson(lessonId: string, patch: LessonPatchInput) {
     const targetModuleId = patch.trackModuleId ?? existingLesson.trackModuleId;
 
     delete data.activities;
+    delete data.blocks;
 
     if (patch.trackModuleId) {
       const module = await tx.trackModule.findUnique({
@@ -325,6 +387,7 @@ export async function updateLesson(lessonId: string, patch: LessonPatchInput) {
       where: { id: lessonId },
       data,
       include: {
+        blocks: { orderBy: { orderIndex: "asc" } },
         activities: { orderBy: { orderIndex: "asc" } }
       }
     });
@@ -351,6 +414,23 @@ export async function updateLesson(lessonId: string, patch: LessonPatchInput) {
       }
     }
 
+    if (patch.blocks !== undefined) {
+      await tx.lessonBlock.deleteMany({ where: { lessonId } });
+      if (patch.blocks.length > 0) {
+        await tx.lessonBlock.createMany({
+          data: patch.blocks.map((block) => ({
+            lessonId,
+            type: block.type,
+            title: block.title ?? "",
+            contentMd: block.contentMd ?? "",
+            orderIndex: block.orderIndex
+          }))
+        });
+      }
+    } else {
+      await syncDefaultLessonBlocks(tx, lessonId);
+    }
+
     await normalizeLessonOrderIndices(tx, existingLesson.trackModuleId);
     if (targetModuleId !== existingLesson.trackModuleId) {
       await normalizeLessonOrderIndices(tx, targetModuleId);
@@ -359,6 +439,7 @@ export async function updateLesson(lessonId: string, patch: LessonPatchInput) {
     return tx.lesson.findUnique({
       where: { id: updatedLesson.id },
       include: {
+        blocks: { orderBy: { orderIndex: "asc" } },
         activities: { orderBy: { orderIndex: "asc" } }
       }
     });

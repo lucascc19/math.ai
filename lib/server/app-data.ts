@@ -240,6 +240,7 @@ export async function getDashboardData(userId?: string | null) {
             where: { status: "PUBLISHED" },
             orderBy: { orderIndex: "asc" },
             include: {
+              blocks: { orderBy: { orderIndex: "asc" } },
               activities: { orderBy: { orderIndex: "asc" } }
             }
           }
@@ -316,6 +317,14 @@ export async function getDashboardData(userId?: string | null) {
                   explanation: lesson.explanation,
                   level: lesson.level,
                   goal: lesson.goal,
+                  tip: lesson.tip,
+                  blocks: lesson.blocks.map((block: any) => ({
+                    id: block.id,
+                    type: block.type,
+                    title: block.title,
+                    contentMd: block.contentMd,
+                    orderIndex: block.orderIndex
+                  })),
                   activity: activity
                     ? {
                         id: activity.id,
@@ -348,8 +357,15 @@ export async function getDashboardData(userId?: string | null) {
           answer: currentLessonDb.answer,
           level: currentLessonDb.level,
           goal: currentLessonDb.goal,
-          tip: currentLessonDb.tip,
-          activity: currentActivity
+      tip: currentLessonDb.tip,
+      blocks: currentLessonDb.blocks.map((block: any) => ({
+        id: block.id,
+        type: block.type,
+        title: block.title,
+        contentMd: block.contentMd,
+        orderIndex: block.orderIndex
+      })),
+      activity: currentActivity
             ? {
                 id: currentActivity.id,
                 type: currentActivity.type,
@@ -453,6 +469,7 @@ export async function submitAnswer(userId: string, input: SubmitAnswerInput) {
             where: { status: "PUBLISHED" },
             orderBy: { orderIndex: "asc" },
             include: {
+              blocks: { orderBy: { orderIndex: "asc" } },
               activities: { orderBy: { orderIndex: "asc" } }
             }
           }
@@ -553,6 +570,13 @@ export async function submitAnswer(userId: string, input: SubmitAnswerInput) {
       level: nextLesson.level,
       goal: nextLesson.goal,
       tip: nextLesson.tip,
+      blocks: nextLesson.blocks.map((block: any) => ({
+        id: block.id,
+        type: block.type,
+        title: block.title,
+        contentMd: block.contentMd,
+        orderIndex: block.orderIndex
+      })),
       activity: nextActivity
         ? {
             id: nextActivity.id,

@@ -1,13 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  ChevronRight,
-  Clock3,
-  PlayCircle,
-} from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronRight, Clock3, PlayCircle } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -26,21 +20,60 @@ import { useAppStore } from "@/store/app-store";
 type SkillCard = DashboardResponse["skills"][number];
 type ModuleCard = SkillCard["modules"][number];
 type LessonCard = ModuleCard["lessons"][number];
+type StudentLessonBlock = {
+  id: string;
+  type: "THEORY" | "EXAMPLE" | "VISUAL" | "PRACTICE_INTRO" | "SUMMARY";
+  title: string;
+  contentMd: string;
+  orderIndex: number;
+};
 type SelectedLesson = LessonCard & {
   moduleId: string;
   moduleTitle: string;
+  blocks: StudentLessonBlock[];
 };
+type StudyMode = "guided" | "theory" | "practice" | "review";
 
-export function StudentModuleDetail({
-  skillId,
-  moduleId,
-}: {
-  skillId: string;
-  moduleId: string;
-}) {
+const STUDY_MODES: Array<{
+  id: StudyMode;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: "guided",
+    label: "Guiado",
+    description: "Conteudo e atividade em sequencia."
+  },
+  {
+    id: "theory",
+    label: "Teoria",
+    description: "Explicacao antes da pratica."
+  },
+  {
+    id: "practice",
+    label: "Pratica",
+    description: "Atividade com apoio rapido."
+  },
+  {
+    id: "review",
+    label: "Revisao",
+    description: "Resumo, objetivo e checkpoint."
+  }
+];
+
+function getLessonBlockContent(lesson: SelectedLesson, types: StudentLessonBlock["type"][]) {
+  return lesson.blocks
+    .filter((block: StudentLessonBlock) => types.includes(block.type) && block.contentMd.trim().length > 0)
+    .sort((a: StudentLessonBlock, b: StudentLessonBlock) => a.orderIndex - b.orderIndex)
+    .map((block: StudentLessonBlock) => `## ${block.title || block.type}\n\n${block.contentMd}`)
+    .join("\n\n");
+}
+
+export function StudentModuleDetail({ skillId, moduleId }: { skillId: string; moduleId: string }) {
   const queryClient = useQueryClient();
   const { setDashboard, setActiveSkillId, dashboard } = useAppStore();
   const [selectedLessonId, setSelectedLessonId] = useState<string | null>(null);
+  const [studyMode, setStudyMode] = useState<StudyMode>("guided");
   const [pendingAnswer, setPendingAnswer] = useState("");
   const [lastResult, setLastResult] = useState<{
     isCorrect: boolean;
@@ -50,7 +83,7 @@ export function StudentModuleDetail({
 
   const dashboardQuery = useQuery({
     queryKey: ["dashboard"],
-    queryFn: api.dashboard,
+    queryFn: api.dashboard
   });
 
   useEffect(() => {
@@ -61,12 +94,12 @@ export function StudentModuleDetail({
 
   const skill = useMemo<SkillCard | undefined>(
     () => dashboard?.skills.find((item: SkillCard) => item.id === skillId),
-    [dashboard?.skills, skillId],
+    [dashboard?.skills, skillId]
   );
 
   const module = useMemo<ModuleCard | undefined>(
     () => skill?.modules.find((item: ModuleCard) => item.id === moduleId),
-    [skill?.modules, moduleId],
+    [skill?.modules, moduleId]
   );
 
   useEffect(() => {
@@ -80,16 +113,14 @@ export function StudentModuleDetail({
       module?.lessons.map((lesson: LessonCard) => ({
         ...lesson,
         moduleId: module.id,
-        moduleTitle: module.title,
+        moduleTitle: module.title
       })) ?? [],
-    [module],
+    [module]
   );
 
   useEffect(() => {
     if (!skill || !module) return;
-    const currentLessonInModule = module.lessons.find(
-      (lesson: LessonCard) => lesson.id === skill.currentLesson.id,
-    );
+    const currentLessonInModule = module.lessons.find((lesson: LessonCard) => lesson.id === skill.currentLesson.id);
     setSelectedLessonId((current) => current ?? currentLessonInModule?.id ?? module.lessons[0]?.id ?? null);
   }, [skill, module]);
 
@@ -109,19 +140,17 @@ export function StudentModuleDetail({
         skillId,
         lessonId: selectedLesson!.id,
         activityId: selectedLesson!.activity!.id,
-        answer,
+        answer
       }),
     onSuccess: async (response) => {
       setLastResult(response.result);
       setPendingAnswer("");
       await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-    },
+    }
   });
 
   if (dashboardQuery.isLoading || !dashboard) {
-    return (
-      <div className="h-64 animate-pulse rounded-2xl border border-black/5 bg-white/70" />
-    );
+    return <div className="h-64 animate-pulse rounded-2xl border border-black/5 bg-white/70" />;
   }
 
   if (!skill || !module) {
@@ -147,9 +176,7 @@ export function StudentModuleDetail({
         <Badge variant="primary" className="w-fit">
           Módulo
         </Badge>
-        <h1 className="max-w-4xl text-3xl font-bold leading-tight text-neutral-10 md:text-4xl">
-          {module.title}
-        </h1>
+        <h1 className="max-w-4xl text-3xl font-bold leading-tight text-neutral-10 md:text-4xl">{module.title}</h1>
         {module.descriptionMd ? (
           <SimpleMarkdownPreview content={module.descriptionMd} />
         ) : (
@@ -189,7 +216,7 @@ export function StudentModuleDetail({
                     "focus-ring grid gap-2 rounded-2xl border px-4 py-4 text-left transition",
                     isSelected
                       ? "border-primary-60/30 bg-primary-95"
-                      : "border-black/6 bg-neutral-95 hover:border-primary-60/30 hover:bg-white",
+                      : "border-black/6 bg-neutral-95 hover:border-primary-60/30 hover:bg-white"
                   )}
                 >
                   <div className="flex flex-wrap items-center gap-2">
@@ -201,9 +228,7 @@ export function StudentModuleDetail({
                   <div className="flex items-start justify-between gap-3">
                     <div className="grid gap-1">
                       <strong className="text-base text-neutral-10">{lesson.title}</strong>
-                      {lesson.summary ? (
-                        <p className="text-sm leading-6 text-neutral-10/68">{lesson.summary}</p>
-                      ) : null}
+                      {lesson.summary ? <p className="text-sm leading-6 text-neutral-10/68">{lesson.summary}</p> : null}
                     </div>
                     <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-neutral-10/45" />
                   </div>
@@ -216,6 +241,8 @@ export function StudentModuleDetail({
             <LessonDetail
               selectedLesson={selectedLesson}
               currentActivity={currentActivity}
+              studyMode={studyMode}
+              onStudyModeChange={setStudyMode}
               pendingAnswer={pendingAnswer}
               setPendingAnswer={setPendingAnswer}
               lastResult={lastResult}
@@ -229,10 +256,7 @@ export function StudentModuleDetail({
         <Card className="grid gap-5 bg-white/88">
           <div className="grid gap-2">
             <span className="text-sm font-semibold text-neutral-10">Progresso detalhado</span>
-            <Progress
-              value={skill.progress.mastery}
-              label={`${skill.progress.mastery}% de domínio atual`}
-            />
+            <Progress value={skill.progress.mastery} label={`${skill.progress.mastery}% de domínio atual`} />
           </div>
 
           <div className="grid gap-3 text-sm text-neutral-10/72">
@@ -266,15 +290,19 @@ export function StudentModuleDetail({
 function LessonDetail({
   selectedLesson,
   currentActivity,
+  studyMode,
+  onStudyModeChange,
   pendingAnswer,
   setPendingAnswer,
   lastResult,
   onSubmitAnswer,
   isSubmitting,
-  submitError,
+  submitError
 }: {
   selectedLesson: SelectedLesson;
   currentActivity: SelectedLesson["activity"] | null;
+  studyMode: StudyMode;
+  onStudyModeChange: (mode: StudyMode) => void;
   pendingAnswer: string;
   setPendingAnswer: (value: string) => void;
   lastResult: {
@@ -286,6 +314,25 @@ function LessonDetail({
   isSubmitting: boolean;
   submitError: Error | null;
 }) {
+  const showTheory = studyMode === "guided" || studyMode === "theory";
+  const showPractice = studyMode === "guided" || studyMode === "practice";
+  const showReview = studyMode === "review";
+  const contentGridClass = studyMode === "guided" ? "grid gap-4 xl:grid-cols-2" : "grid gap-4";
+  const theoryContent =
+    getLessonBlockContent(selectedLesson, ["THEORY", "EXAMPLE", "VISUAL"]) ||
+    selectedLesson.contentMd ||
+    selectedLesson.explanation;
+  const practiceIntroContent =
+    getLessonBlockContent(selectedLesson, ["PRACTICE_INTRO"]) ||
+    currentActivity?.instructionMd ||
+    selectedLesson.instructionMd ||
+    selectedLesson.prompt;
+  const reviewContent =
+    getLessonBlockContent(selectedLesson, ["SUMMARY", "PRACTICE_INTRO"]) ||
+    selectedLesson.instructionMd ||
+    selectedLesson.contentMd ||
+    selectedLesson.explanation;
+
   return (
     <div className="grid gap-5 rounded-2xl border border-primary-60/20 bg-white/75 p-4 md:p-5">
       <div className="grid gap-3">
@@ -306,146 +353,199 @@ function LessonDetail({
           {selectedLesson.summary ? (
             <p className="text-sm leading-7 text-neutral-10/72">{selectedLesson.summary}</p>
           ) : null}
-          {selectedLesson.story ? (
-            <p className="text-sm leading-7 text-neutral-10/72">{selectedLesson.story}</p>
-          ) : null}
+          {selectedLesson.story ? <p className="text-sm leading-7 text-neutral-10/72">{selectedLesson.story}</p> : null}
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <div className="grid gap-2">
-          <span className="text-sm font-semibold text-neutral-10">Explicação</span>
+      <StudyModeSelector activeMode={studyMode} onChange={onStudyModeChange} />
+
+      {showReview ? (
+        <Card className="grid gap-3 border-black/6 bg-neutral-95">
+          <span className="text-sm font-semibold text-neutral-10">Resumo de revisao</span>
+          {selectedLesson.summary ? (
+            <p className="text-sm leading-7 text-neutral-10/72">{selectedLesson.summary}</p>
+          ) : null}
+          {selectedLesson.goal ? (
+            <p className="text-sm leading-7 text-neutral-10/72">Objetivo: {selectedLesson.goal}</p>
+          ) : null}
+          <SimpleMarkdownPreview
+            content={reviewContent}
+            emptyMessage="Esta licao ainda nao possui resumo de revisao."
+          />
+        </Card>
+      ) : null}
+
+      <div className={contentGridClass}>
+        {showTheory ? (
+          <div className="grid gap-2">
+            <span className="text-sm font-semibold text-neutral-10">Explicação</span>
+            <Card className="grid gap-3 border-black/6 bg-neutral-95">
+              <SimpleMarkdownPreview
+                content={theoryContent}
+                emptyMessage="O conteúdo desta lição ainda não foi preenchido."
+              />
+            </Card>
+          </div>
+        ) : null}
+
+        {studyMode === "practice" ? (
           <Card className="grid gap-3 border-black/6 bg-neutral-95">
-            <SimpleMarkdownPreview
-              content={selectedLesson.contentMd || selectedLesson.explanation}
-              emptyMessage="O conteúdo desta lição ainda não foi preenchido."
-            />
+            <span className="text-sm font-semibold text-neutral-10">Apoio rapido</span>
+            {selectedLesson.summary ? (
+              <p className="text-sm leading-7 text-neutral-10/72">{selectedLesson.summary}</p>
+            ) : null}
+            {selectedLesson.goal ? (
+              <p className="text-sm leading-7 text-neutral-10/72">Objetivo: {selectedLesson.goal}</p>
+            ) : null}
+            {selectedLesson.tip ? (
+              <p className="text-sm leading-7 text-neutral-10/72">Dica: {selectedLesson.tip}</p>
+            ) : null}
           </Card>
-        </div>
+        ) : null}
 
-        <div className="grid gap-2">
-          <span className="text-sm font-semibold text-neutral-10">Atividade</span>
-          <Card className="grid gap-4 border-black/6 bg-neutral-95">
-            <SimpleMarkdownPreview
-              content={
-                currentActivity?.instructionMd ||
-                selectedLesson.instructionMd ||
-                selectedLesson.prompt
-              }
-              emptyMessage="A atividade desta lição ainda não foi preenchida."
-            />
+        {showPractice || showReview ? (
+          <div className="grid gap-2">
+            <span className="text-sm font-semibold text-neutral-10">Atividade</span>
+            <Card className="grid gap-4 border-black/6 bg-neutral-95">
+              <SimpleMarkdownPreview
+                content={practiceIntroContent}
+                emptyMessage="A atividade desta lição ainda não foi preenchida."
+              />
 
-            {currentActivity ? (
-              <div className="grid gap-3">
-                {currentActivity.type === "MULTIPLE_CHOICE" ? (
-                  <div className="grid gap-2">
-                    {currentActivity.options.map((option: string) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => setPendingAnswer(option)}
-                        className={cn(
-                          "focus-ring rounded-2xl border px-4 py-3 text-left text-sm transition",
-                          pendingAnswer === option
-                            ? "border-primary-60/30 bg-primary-95"
-                            : "border-black/8 bg-white hover:border-primary-60/30",
-                        )}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                ) : currentActivity.type === "TRUE_FALSE" ? (
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {["Verdadeiro", "Falso"].map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() => setPendingAnswer(option.toLowerCase())}
-                        className={cn(
-                          "focus-ring rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition",
-                          pendingAnswer === option.toLowerCase()
-                            ? "border-primary-60/30 bg-primary-95"
-                            : "border-black/8 bg-white hover:border-primary-60/30",
-                        )}
-                      >
-                        {option}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <Input
-                    placeholder={
-                      currentActivity.type === "NUMERIC"
-                        ? "Digite sua resposta numérica"
-                        : "Digite sua resposta em texto"
-                    }
-                    value={pendingAnswer}
-                    onChange={(event) => setPendingAnswer(event.target.value)}
-                  />
-                )}
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button
-                    type="button"
-                    onClick={() => onSubmitAnswer(pendingAnswer)}
-                    disabled={isSubmitting || pendingAnswer.trim().length === 0}
-                  >
-                    {isSubmitting ? "Enviando..." : "Responder atividade"}
-                  </Button>
-                  {currentActivity.hintMd ? (
-                    <span className="text-xs leading-6 text-neutral-10/60">
-                      Dica disponível abaixo.
-                    </span>
-                  ) : null}
-                </div>
-
-                {currentActivity.hintMd ? (
-                  <Card className="grid gap-2 border-black/6 bg-white">
-                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-10/55">
-                      Dica
-                    </span>
-                    <SimpleMarkdownPreview content={currentActivity.hintMd} />
-                  </Card>
-                ) : null}
-
-                {lastResult ? (
-                  <Card
-                    className={cn(
-                      "grid gap-2 border",
-                      lastResult.isCorrect
-                        ? "border-secondary-60/30 bg-secondary-95"
-                        : "border-tertiary-30/25 bg-white",
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="h-4 w-4 text-neutral-10" />
-                      <strong className="text-sm text-neutral-10">
-                        {lastResult.isCorrect ? "Resposta correta" : "Resposta incorreta"}
-                      </strong>
+              {currentActivity ? (
+                <div className="grid gap-3">
+                  {currentActivity.type === "MULTIPLE_CHOICE" ? (
+                    <div className="grid gap-2">
+                      {currentActivity.options.map((option: string) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => setPendingAnswer(option)}
+                          className={cn(
+                            "focus-ring rounded-2xl border px-4 py-3 text-left text-sm transition",
+                            pendingAnswer === option
+                              ? "border-primary-60/30 bg-primary-95"
+                              : "border-black/8 bg-white hover:border-primary-60/30"
+                          )}
+                        >
+                          {option}
+                        </button>
+                      ))}
                     </div>
-                    {!lastResult.isCorrect ? (
-                      <p className="text-sm text-neutral-10/72">
-                        Resposta esperada: {lastResult.correctAnswer}
-                      </p>
-                    ) : null}
-                    {lastResult.explanation ? (
-                      <SimpleMarkdownPreview content={lastResult.explanation} />
-                    ) : null}
-                  </Card>
-                ) : null}
+                  ) : currentActivity.type === "TRUE_FALSE" ? (
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {["Verdadeiro", "Falso"].map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => setPendingAnswer(option.toLowerCase())}
+                          className={cn(
+                            "focus-ring rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition",
+                            pendingAnswer === option.toLowerCase()
+                              ? "border-primary-60/30 bg-primary-95"
+                              : "border-black/8 bg-white hover:border-primary-60/30"
+                          )}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <Input
+                      placeholder={
+                        currentActivity.type === "NUMERIC"
+                          ? "Digite sua resposta numérica"
+                          : "Digite sua resposta em texto"
+                      }
+                      value={pendingAnswer}
+                      onChange={(event) => setPendingAnswer(event.target.value)}
+                    />
+                  )}
 
-                {submitError ? (
-                  <p className="text-sm text-tertiary-30">{submitError.message}</p>
-                ) : null}
-              </div>
-            ) : (
-              <p className="text-sm leading-6 text-neutral-10/60">
-                Esta lição ainda não possui atividade configurada.
-              </p>
-            )}
-          </Card>
-        </div>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button
+                      type="button"
+                      onClick={() => onSubmitAnswer(pendingAnswer)}
+                      disabled={isSubmitting || pendingAnswer.trim().length === 0}
+                    >
+                      {isSubmitting ? "Enviando..." : "Responder atividade"}
+                    </Button>
+                    {currentActivity.hintMd ? (
+                      <span className="text-xs leading-6 text-neutral-10/60">Dica disponível abaixo.</span>
+                    ) : null}
+                  </div>
+
+                  {currentActivity.hintMd ? (
+                    <Card className="grid gap-2 border-black/6 bg-white">
+                      <span className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-10/55">Dica</span>
+                      <SimpleMarkdownPreview content={currentActivity.hintMd} />
+                    </Card>
+                  ) : null}
+
+                  {lastResult ? (
+                    <Card
+                      className={cn(
+                        "grid gap-2 border",
+                        lastResult.isCorrect
+                          ? "border-secondary-60/30 bg-secondary-95"
+                          : "border-tertiary-30/25 bg-white"
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-neutral-10" />
+                        <strong className="text-sm text-neutral-10">
+                          {lastResult.isCorrect ? "Resposta correta" : "Resposta incorreta"}
+                        </strong>
+                      </div>
+                      {!lastResult.isCorrect ? (
+                        <p className="text-sm text-neutral-10/72">Resposta esperada: {lastResult.correctAnswer}</p>
+                      ) : null}
+                      {lastResult.explanation ? <SimpleMarkdownPreview content={lastResult.explanation} /> : null}
+                    </Card>
+                  ) : null}
+
+                  {submitError ? <p className="text-sm text-tertiary-30">{submitError.message}</p> : null}
+                </div>
+              ) : (
+                <p className="text-sm leading-6 text-neutral-10/60">
+                  Esta lição ainda não possui atividade configurada.
+                </p>
+              )}
+            </Card>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function StudyModeSelector({ activeMode, onChange }: { activeMode: StudyMode; onChange: (mode: StudyMode) => void }) {
+  return (
+    <div className="grid gap-2">
+      <span className="text-sm font-semibold text-neutral-10">Modo de estudo</span>
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4" role="tablist" aria-label="Modo de estudo da licao">
+        {STUDY_MODES.map((mode) => {
+          const isActive = activeMode === mode.id;
+
+          return (
+            <button
+              key={mode.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => onChange(mode.id)}
+              className={cn(
+                "focus-ring grid gap-1 rounded-2xl border px-4 py-3 text-left transition",
+                isActive
+                  ? "border-primary-60/30 bg-primary-95 text-primary-20"
+                  : "border-black/8 bg-white text-neutral-10 hover:border-primary-60/30"
+              )}
+            >
+              <span className="text-sm font-bold">{mode.label}</span>
+              <span className="text-xs leading-5 opacity-75">{mode.description}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

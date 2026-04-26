@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { ContentStatus } from "@prisma/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDown, ArrowLeft, ArrowUp, Clock3, FolderTree, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Controller } from "react-hook-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -11,6 +12,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 
 import { StatusPill } from "@/components/admin/content-panel";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,12 +21,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { api, type AdminLesson, type AdminTrackDetail, type AdminTrackModule } from "@/lib/api";
 import {
   lessonActivityTypeSchema,
+  lessonBlockTypeSchema,
   lessonDraftSchema,
   lessonTypeSchema,
   moduleDraftSchema,
   modulePatchSchema,
   trackPatchSchema,
   type LessonActivityDraftInput,
+  type LessonBlockDraftInput,
   type LessonDraftInput,
   type ModuleDraftInput,
   type ModulePatchInput,
@@ -32,6 +36,269 @@ import {
 } from "@/lib/schemas";
 
 type Props = { initialTrack: AdminTrackDetail };
+
+type LessonTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  values: Omit<LessonDraftInput, "trackModuleId" | "title" | "orderIndex">;
+};
+
+type LessonEditorTab = "structure" | "content" | "blocks" | "activities" | "preview" | "publishing";
+
+const LESSON_EDITOR_TABS: Array<{ id: LessonEditorTab; label: string }> = [
+  { id: "structure", label: "Estrutura" },
+  { id: "content", label: "Conteudo" },
+  { id: "blocks", label: "Blocos" },
+  { id: "activities", label: "Atividades" },
+  { id: "preview", label: "Preview" },
+  { id: "publishing", label: "Publicacao" }
+];
+
+const BLOCK_TYPE_LABELS: Record<string, string> = {
+  THEORY: "Teoria",
+  EXAMPLE: "Exemplo",
+  VISUAL: "Visual",
+  PRACTICE_INTRO: "Introducao da pratica",
+  SUMMARY: "Resumo"
+};
+
+const ACTIVITY_TYPE_LABELS: Record<string, string> = {
+  NUMERIC: "Numerica",
+  MULTIPLE_CHOICE: "Multipla escolha",
+  TRUE_FALSE: "Verdadeiro ou falso",
+  SHORT_TEXT: "Texto curto"
+};
+
+const LESSON_TEMPLATES: LessonTemplate[] = [
+  {
+    id: "theory-first",
+    name: "Teoria primeiro",
+    description: "Explicacao, exemplo resolvido e uma checagem curta.",
+    values: {
+      summary: "Introducao conceitual com exemplo resolvido.",
+      contentMd:
+        "## Conceito\n\nExplique a ideia central da licao com linguagem direta.\n\n## Exemplo resolvido\n\nMostre um exemplo passo a passo.\n\n## Ponto de atencao\n\nDestaque um erro comum ou uma observacao importante.",
+      instructionMd: "Leia a explicacao e resolva a checagem para confirmar o entendimento.",
+      teacherNotesMd: "Use esta licao quando o aluno precisar construir base antes de praticar.",
+      lessonType: "EXPLANATION",
+      estimatedMinutes: 12,
+      prompt: "Resolva a checagem conceitual da licao.",
+      story: "O aluno estudou a definicao e precisa verificar se entendeu o conceito principal.",
+      explanation: "A resposta deve seguir diretamente a definicao apresentada no conteudo.",
+      answer: 0,
+      level: "Iniciante",
+      goal: "Compreender o conceito antes de aplicar em exercicios.",
+      tip: "Volte ao exemplo resolvido e compare os passos.",
+      blocks: [
+        { type: "SUMMARY", title: "Resumo", contentMd: "Introducao conceitual com exemplo resolvido.", orderIndex: 0 },
+        { type: "THEORY", title: "Explicacao", contentMd: "## Conceito\n\nExplique a ideia central da licao com linguagem direta.\n\n## Exemplo resolvido\n\nMostre um exemplo passo a passo.\n\n## Ponto de atencao\n\nDestaque um erro comum ou uma observacao importante.", orderIndex: 1 },
+        { type: "PRACTICE_INTRO", title: "Atividade", contentMd: "Leia a explicacao e resolva a checagem para confirmar o entendimento.", orderIndex: 2 }
+      ],
+      activities: [
+        {
+          type: "SHORT_TEXT",
+          instructionMd: "Explique com suas palavras a ideia principal desta licao.",
+          answerKey: "resposta conceitual",
+          choiceOptionsText: "",
+          hintMd: "Use a definicao e o exemplo resolvido como referencia.",
+          feedbackCorrectMd: "Boa leitura do conceito. Agora avance para uma aplicacao.",
+          feedbackIncorrectMd: "Revise a definicao e tente reescrever a ideia com suas palavras.",
+          orderIndex: 0
+        }
+      ]
+    }
+  },
+  {
+    id: "guided-practice",
+    name: "Pratica guiada",
+    description: "Problema com contexto, dica e feedback.",
+    values: {
+      summary: "Exercicio guiado para aplicar o conceito.",
+      contentMd:
+        "## Antes de resolver\n\nRetome a regra ou estrategia que sera usada.\n\n## Caminho sugerido\n\n1. Identifique os dados do problema.\n2. Escolha a operacao ou relacao adequada.\n3. Resolva e confira a resposta.",
+      instructionMd: "Resolva a atividade seguindo os passos sugeridos.",
+      teacherNotesMd: "Use esta licao para consolidar um conceito ja apresentado.",
+      lessonType: "PRACTICE",
+      estimatedMinutes: 15,
+      prompt: "Resolva o problema guiado.",
+      story: "O aluno vai aplicar o conteudo em uma situacao direta.",
+      explanation: "A resolucao deve explicitar os dados, a estrategia e o resultado.",
+      answer: 0,
+      level: "Intermediario",
+      goal: "Aplicar o conceito em um exercicio orientado.",
+      tip: "Separe os dados antes de calcular.",
+      blocks: [
+        { type: "SUMMARY", title: "Resumo", contentMd: "Exercicio guiado para aplicar o conceito.", orderIndex: 0 },
+        { type: "THEORY", title: "Antes de resolver", contentMd: "## Antes de resolver\n\nRetome a regra ou estrategia que sera usada.\n\n## Caminho sugerido\n\n1. Identifique os dados do problema.\n2. Escolha a operacao ou relacao adequada.\n3. Resolva e confira a resposta.", orderIndex: 1 },
+        { type: "PRACTICE_INTRO", title: "Atividade", contentMd: "Resolva a atividade seguindo os passos sugeridos.", orderIndex: 2 }
+      ],
+      activities: [
+        {
+          type: "NUMERIC",
+          instructionMd: "Calcule o resultado do problema proposto.",
+          answerKey: "0",
+          choiceOptionsText: "",
+          hintMd: "Confira se voce usou todos os dados do enunciado.",
+          feedbackCorrectMd: "Correto. A estrategia foi aplicada adequadamente.",
+          feedbackIncorrectMd: "Revise os dados e refaca o calculo passo a passo.",
+          orderIndex: 0
+        }
+      ]
+    }
+  },
+  {
+    id: "visual",
+    name: "Visual",
+    description: "Leitura visual, interpretacao e pergunta objetiva.",
+    values: {
+      summary: "Licao com foco em representacao visual.",
+      contentMd:
+        "## Observe\n\nDescreva aqui a figura, tabela, grafico ou diagrama que sera usado.\n\n## Interpretacao\n\nExplique como ler os elementos visuais e o que eles representam.",
+      instructionMd: "Use a representacao visual para responder a atividade.",
+      teacherNotesMd: "Adicione ou referencie uma imagem/diagrama quando a licao exigir suporte visual.",
+      lessonType: "PRACTICE",
+      estimatedMinutes: 10,
+      prompt: "Interprete a representacao visual.",
+      story: "O aluno observa uma representacao e extrai informacoes matematicas dela.",
+      explanation: "A resposta depende da leitura correta dos elementos visuais.",
+      answer: 0,
+      level: "Iniciante",
+      goal: "Interpretar uma representacao visual de um conceito matematico.",
+      tip: "Observe legendas, medidas, eixos ou marcacoes antes de responder.",
+      blocks: [
+        { type: "SUMMARY", title: "Resumo", contentMd: "Licao com foco em representacao visual.", orderIndex: 0 },
+        { type: "VISUAL", title: "Representacao visual", contentMd: "## Observe\n\nDescreva aqui a figura, tabela, grafico ou diagrama que sera usado.\n\n## Interpretacao\n\nExplique como ler os elementos visuais e o que eles representam.", orderIndex: 1 },
+        { type: "PRACTICE_INTRO", title: "Atividade", contentMd: "Use a representacao visual para responder a atividade.", orderIndex: 2 }
+      ],
+      activities: [
+        {
+          type: "MULTIPLE_CHOICE",
+          instructionMd: "Qual alternativa interpreta corretamente a representacao?",
+          answerKey: "Alternativa correta",
+          choiceOptionsText: "Alternativa correta\nAlternativa incorreta\nOutra alternativa incorreta",
+          hintMd: "Elimine primeiro as alternativas que contradizem a representacao.",
+          feedbackCorrectMd: "Correto. A leitura visual esta consistente.",
+          feedbackIncorrectMd: "Revise os elementos da representacao antes de escolher.",
+          orderIndex: 0
+        }
+      ]
+    }
+  },
+  {
+    id: "review",
+    name: "Revisao",
+    description: "Resumo, pontos-chave e checkpoint.",
+    values: {
+      summary: "Revisao curta dos pontos principais.",
+      contentMd:
+        "## Resumo\n\nRetome as ideias principais da aula.\n\n## Pontos-chave\n\n- Primeiro ponto importante\n- Segundo ponto importante\n- Erro comum a evitar",
+      instructionMd: "Responda ao checkpoint para verificar se esta pronto para seguir.",
+      teacherNotesMd: "Use esta licao no fim de um modulo ou antes de um desafio.",
+      lessonType: "REVIEW",
+      estimatedMinutes: 8,
+      prompt: "Revise os pontos principais.",
+      story: "O aluno precisa consolidar o que aprendeu antes de avancar.",
+      explanation: "A resposta deve demonstrar dominio dos pontos revisados.",
+      answer: 0,
+      level: "Revisao",
+      goal: "Consolidar os principais aprendizados da sequencia.",
+      tip: "Compare sua resposta com os pontos-chave do resumo.",
+      blocks: [
+        { type: "SUMMARY", title: "Resumo", contentMd: "Revisao curta dos pontos principais.", orderIndex: 0 },
+        { type: "THEORY", title: "Pontos-chave", contentMd: "## Resumo\n\nRetome as ideias principais da aula.\n\n## Pontos-chave\n\n- Primeiro ponto importante\n- Segundo ponto importante\n- Erro comum a evitar", orderIndex: 1 },
+        { type: "PRACTICE_INTRO", title: "Checkpoint", contentMd: "Responda ao checkpoint para verificar se esta pronto para seguir.", orderIndex: 2 }
+      ],
+      activities: [
+        {
+          type: "TRUE_FALSE",
+          instructionMd: "A afirmacao principal da revisao esta correta?",
+          answerKey: "verdadeiro",
+          choiceOptionsText: "",
+          hintMd: "Volte aos pontos-chave e procure a afirmacao equivalente.",
+          feedbackCorrectMd: "Correto. Voce identificou bem a ideia central.",
+          feedbackIncorrectMd: "Revise os pontos-chave antes de tentar novamente.",
+          orderIndex: 0
+        }
+      ]
+    }
+  },
+  {
+    id: "challenge",
+    name: "Desafio",
+    description: "Problema mais aberto com pistas.",
+    values: {
+      summary: "Desafio para aplicar mais de uma ideia.",
+      contentMd:
+        "## Desafio\n\nApresente um problema que combine conceitos ja estudados.\n\n## Estrategia\n\nOriente o aluno a decompor o problema em partes menores.",
+      instructionMd: "Resolva o desafio e registre o resultado final.",
+      teacherNotesMd: "Use quando o aluno ja tiver visto os pre-requisitos.",
+      lessonType: "PRACTICE",
+      estimatedMinutes: 20,
+      prompt: "Resolva o desafio proposto.",
+      story: "O aluno enfrenta um problema menos direto e precisa escolher uma estrategia.",
+      explanation: "A resolucao deve decompor o problema e justificar o resultado.",
+      answer: 0,
+      level: "Avancado",
+      goal: "Combinar conceitos para resolver um problema menos imediato.",
+      tip: "Quebre o problema em etapas e resolva uma parte por vez.",
+      blocks: [
+        { type: "SUMMARY", title: "Resumo", contentMd: "Desafio para aplicar mais de uma ideia.", orderIndex: 0 },
+        { type: "THEORY", title: "Estrategia", contentMd: "## Desafio\n\nApresente um problema que combine conceitos ja estudados.\n\n## Estrategia\n\nOriente o aluno a decompor o problema em partes menores.", orderIndex: 1 },
+        { type: "PRACTICE_INTRO", title: "Atividade", contentMd: "Resolva o desafio e registre o resultado final.", orderIndex: 2 }
+      ],
+      activities: [
+        {
+          type: "NUMERIC",
+          instructionMd: "Qual e o resultado final do desafio?",
+          answerKey: "0",
+          choiceOptionsText: "",
+          hintMd: "Identifique primeiro quais conceitos aparecem no problema.",
+          feedbackCorrectMd: "Correto. Voce combinou bem as etapas do desafio.",
+          feedbackIncorrectMd: "Revise a decomposicao do problema e confira cada etapa.",
+          orderIndex: 0
+        }
+      ]
+    }
+  },
+  {
+    id: "quick-quiz",
+    name: "Quiz rapido",
+    description: "Pergunta objetiva para checagem rapida.",
+    values: {
+      summary: "Checagem rapida de entendimento.",
+      contentMd: "## Antes do quiz\n\nLeia a pergunta com atencao e escolha a melhor alternativa.",
+      instructionMd: "Responda ao quiz rapido.",
+      teacherNotesMd: "Use para verificar entendimento durante ou ao fim de uma aula.",
+      lessonType: "QUIZ",
+      estimatedMinutes: 5,
+      prompt: "Escolha a alternativa correta.",
+      story: "O aluno responde uma pergunta objetiva para checar entendimento.",
+      explanation: "A alternativa correta deve refletir diretamente o conceito trabalhado.",
+      answer: 0,
+      level: "Check",
+      goal: "Verificar rapidamente se o aluno entendeu o ponto principal.",
+      tip: "Procure a alternativa que melhor combina com a definicao.",
+      blocks: [
+        { type: "SUMMARY", title: "Resumo", contentMd: "Checagem rapida de entendimento.", orderIndex: 0 },
+        { type: "THEORY", title: "Antes do quiz", contentMd: "## Antes do quiz\n\nLeia a pergunta com atencao e escolha a melhor alternativa.", orderIndex: 1 },
+        { type: "PRACTICE_INTRO", title: "Quiz", contentMd: "Responda ao quiz rapido.", orderIndex: 2 }
+      ],
+      activities: [
+        {
+          type: "MULTIPLE_CHOICE",
+          instructionMd: "Qual alternativa esta correta?",
+          answerKey: "Alternativa correta",
+          choiceOptionsText: "Alternativa correta\nAlternativa incorreta\nOutra alternativa incorreta",
+          hintMd: "Elimine as alternativas que contradizem a explicacao.",
+          feedbackCorrectMd: "Correto. Voce identificou a alternativa adequada.",
+          feedbackIncorrectMd: "Revise o conceito e compare as alternativas novamente.",
+          orderIndex: 0
+        }
+      ]
+    }
+  }
+];
 
 export function TrackDetailPanel({ initialTrack }: Props) {
   const router = useRouter();
@@ -214,7 +481,11 @@ function TrackEditForm({ track, onSuccess }: { track: AdminTrackDetail; onSucces
 
         <section className="grid gap-3">
           <Textarea placeholder="Descrição curta" {...form.register("description")} className="min-h-24" />
-          <Textarea placeholder="Descrição longa em Markdown" {...form.register("longDescriptionMd")} className="min-h-40" />
+          <Textarea
+            placeholder="Descrição longa em Markdown"
+            {...form.register("longDescriptionMd")}
+            className="min-h-40"
+          />
           <Textarea
             placeholder="Objetivos de aprendizagem em Markdown"
             {...form.register("learningOutcomesMd")}
@@ -272,7 +543,11 @@ function CreateModuleForm({
         <Input placeholder="Título do módulo" {...form.register("title")} className="md:col-span-2" />
         <Input type="number" placeholder="Tempo estimado em minutos" {...form.register("estimatedMinutes")} />
         <Input type="number" placeholder="Ordem" {...form.register("orderIndex")} />
-        <Textarea placeholder="Descrição do módulo em Markdown" {...form.register("descriptionMd")} className="md:col-span-2 min-h-28" />
+        <Textarea
+          placeholder="Descrição do módulo em Markdown"
+          {...form.register("descriptionMd")}
+          className="md:col-span-2 min-h-28"
+        />
         <div className="md:col-span-2 flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? "Criando..." : "Criar módulo"}
@@ -449,7 +724,11 @@ function ModuleEditForm({ module, onSuccess }: { module: AdminTrackModule; onSuc
         <Input placeholder="Título do módulo" {...form.register("title")} className="md:col-span-2" />
         <Input type="number" placeholder="Tempo estimado em minutos" {...form.register("estimatedMinutes")} />
         <Input type="number" placeholder="Ordem" {...form.register("orderIndex")} />
-        <Textarea placeholder="Descrição do módulo em Markdown" {...form.register("descriptionMd")} className="md:col-span-2 min-h-28" />
+        <Textarea
+          placeholder="Descrição do módulo em Markdown"
+          {...form.register("descriptionMd")}
+          className="md:col-span-2 min-h-28"
+        />
         <div className="md:col-span-2 flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? "Salvando..." : "Salvar módulo"}
@@ -591,6 +870,7 @@ function CreateLessonForm({
   nextOrderIndex: number;
   onSuccess: () => void;
 }) {
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const form = useForm<LessonDraftInput>({
     resolver: zodResolver(lessonDraftSchema),
     defaultValues: {
@@ -610,9 +890,22 @@ function CreateLessonForm({
       goal: "",
       tip: "",
       orderIndex: nextOrderIndex,
-      activities: [createEmptyActivity(0)]
+      activities: [createEmptyActivity(0)],
+      blocks: []
     }
   });
+
+  function applyTemplate(template: LessonTemplate) {
+    const currentTitle = form.getValues("title");
+
+    setSelectedTemplateId(template.id);
+    form.reset({
+      trackModuleId: module.id,
+      title: currentTitle,
+      orderIndex: nextOrderIndex,
+      ...template.values
+    });
+  }
 
   const mutation = useMutation({
     mutationFn: api.admin.createLesson,
@@ -625,9 +918,42 @@ function CreateLessonForm({
       <p className="text-sm leading-6 text-neutral-10/70 dark:text-neutral-80">
         Esta lição será criada dentro do módulo <strong>{module.title}</strong>.
       </p>
+      <section className="grid gap-3 rounded-2xl border border-black/8 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/40">
+        <div className="grid gap-1">
+          <span className="text-sm font-semibold text-neutral-10 dark:text-neutral-95">Comecar por um template</span>
+          <p className="text-sm leading-6 text-neutral-10/68 dark:text-neutral-80">
+            Escolha uma estrutura inicial e ajuste os campos depois.
+          </p>
+        </div>
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+          {LESSON_TEMPLATES.map((template) => {
+            const isSelected = selectedTemplateId === template.id;
+
+            return (
+              <button
+                key={template.id}
+                type="button"
+                onClick={() => applyTemplate(template)}
+                className={`focus-ring grid gap-1 rounded-2xl border p-4 text-left transition ${
+                  isSelected
+                    ? "border-primary-60 bg-primary-95 text-primary-20 dark:border-primary-60 dark:bg-primary-20/50 dark:text-primary-95"
+                    : "border-black/10 bg-white text-neutral-10 hover:border-primary-60/40 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
+                }`}
+              >
+                <span className="text-sm font-bold">{template.name}</span>
+                <span className="text-xs leading-5 opacity-75">{template.description}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
       <LessonFormFields form={form} />
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="button" onClick={form.handleSubmit((values) => mutation.mutate(values))} disabled={mutation.isPending}>
+        <Button
+          type="button"
+          onClick={form.handleSubmit((values) => mutation.mutate(values))}
+          disabled={mutation.isPending}
+        >
           {mutation.isPending ? "Criando..." : "Criar lição"}
         </Button>
         {mutation.error && (
@@ -678,7 +1004,13 @@ function LessonEditForm({
               feedbackIncorrectMd: activity.feedbackIncorrectMd,
               orderIndex: activity.orderIndex ?? index
             }))
-          : [createEmptyActivity(0)]
+          : [createEmptyActivity(0)],
+      blocks: lesson.blocks.map((block, index) => ({
+        type: block.type,
+        title: block.title,
+        contentMd: block.contentMd,
+        orderIndex: block.orderIndex ?? index
+      }))
     }
   });
 
@@ -689,22 +1021,13 @@ function LessonEditForm({
 
   return (
     <div className="grid gap-3 rounded-[18px] border border-black/10 bg-white/80 p-4 dark:border-white/15 dark:bg-neutral-20/60">
-      <LessonFormFields form={form} />
-      <div className="grid gap-2">
-        <span className="text-sm font-semibold text-neutral-10 dark:text-neutral-95">Módulo</span>
-        <select
-          className="focus-ring h-12 rounded-2xl border border-black/10 bg-white/90 px-4 text-sm text-neutral-10"
-          {...form.register("trackModuleId")}
-        >
-          {modules.map((module) => (
-            <option key={module.id} value={module.id}>
-              {module.title}
-            </option>
-          ))}
-        </select>
-      </div>
+      <LessonFormFields form={form} modules={modules} />
       <div className="flex flex-wrap items-center gap-3">
-        <Button type="button" onClick={form.handleSubmit((values) => mutation.mutate(values))} disabled={mutation.isPending}>
+        <Button
+          type="button"
+          onClick={form.handleSubmit((values) => mutation.mutate(values))}
+          disabled={mutation.isPending}
+        >
           {mutation.isPending ? "Salvando..." : "Salvar lição"}
         </Button>
         {mutation.error && (
@@ -715,15 +1038,40 @@ function LessonEditForm({
   );
 }
 
-function LessonFormFields({ form }: { form: ReturnType<typeof useForm<LessonDraftInput>> }) {
+function LessonFormFields({
+  form,
+  modules
+}: {
+  form: ReturnType<typeof useForm<LessonDraftInput>>;
+  modules?: AdminTrackModule[];
+}) {
+  const [activeTab, setActiveTab] = useState<LessonEditorTab>("structure");
   const contentMd = form.watch("contentMd");
   const instructionMd = form.watch("instructionMd");
   const activities = form.watch("activities");
+  const title = form.watch("title");
+  const summary = form.watch("summary");
+  const goal = form.watch("goal");
+  const level = form.watch("level");
+  const lessonType = form.watch("lessonType");
 
   const { fields, append, remove, move } = useFieldArray({
     control: form.control,
     name: "activities"
   });
+
+  const { fields: blockFields, append: appendBlock, remove: removeBlock, move: moveBlock } = useFieldArray({
+    control: form.control,
+    name: "blocks"
+  });
+
+  const filledRequirements = [
+    { label: "Titulo", done: Boolean(title?.trim()) },
+    { label: "Resumo", done: Boolean(summary?.trim()) },
+    { label: "Objetivo", done: Boolean(goal?.trim()) },
+    { label: "Conteudo", done: Boolean(contentMd?.trim()) },
+    { label: "Atividade", done: fields.length > 0 }
+  ];
 
   function appendActivity() {
     append(createEmptyActivity(fields.length));
@@ -744,37 +1092,213 @@ function LessonFormFields({ form }: { form: ReturnType<typeof useForm<LessonDraf
     reindexActivities(nextActivities, form);
   }
 
+  function appendNewBlock() {
+    appendBlock(createEmptyBlock(blockFields.length));
+  }
+
+  function removeBlockItem(index: number) {
+    removeBlock(index);
+    const nextBlocks = form.getValues("blocks") ?? [];
+    reindexBlocks(nextBlocks, form);
+  }
+
+  function moveBlockItem(index: number, delta: number) {
+    const target = index + delta;
+    if (target < 0 || target >= blockFields.length) return;
+    moveBlock(index, target);
+    const nextBlocks = form.getValues("blocks") ?? [];
+    reindexBlocks(nextBlocks, form);
+  }
+
   return (
     <div className="grid gap-5">
-      <section className="grid gap-3 md:grid-cols-2">
+      <div className="flex flex-wrap gap-2 border-b border-black/10 pb-3 dark:border-white/10" role="tablist">
+        {LESSON_EDITOR_TABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setActiveTab(tab.id)}
+              className={`focus-ring rounded-full px-4 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? "bg-primary-60 text-white"
+                  : "border border-black/10 bg-white text-neutral-10 hover:border-primary-60/40 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      <section className={`grid gap-3 md:grid-cols-2 ${activeTab === "structure" ? "" : "hidden"}`}>
         <Input placeholder="Título" {...form.register("title")} />
         <Input placeholder="Resumo rápido da lição" {...form.register("summary")} />
         <Input placeholder="Nível (ex: Iniciante)" {...form.register("level")} />
         <Input placeholder="Objetivo" {...form.register("goal")} />
         <Input placeholder="Tipo (EXPLANATION, PRACTICE, QUIZ, REVIEW)" {...form.register("lessonType")} />
         <Input type="number" placeholder="Tempo estimado em minutos" {...form.register("estimatedMinutes")} />
+        {modules ? (
+          <div className="grid gap-2 md:col-span-2">
+            <span className="text-sm font-semibold text-neutral-10 dark:text-neutral-95">Modulo</span>
+            <Controller
+              control={form.control}
+              name="trackModuleId"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o modulo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {modules.map((module) => (
+                      <SelectItem key={module.id} value={module.id}>
+                        {module.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+        ) : null}
       </section>
 
-      <section className="grid gap-3">
+      <section className={`grid gap-3 ${activeTab === "content" ? "" : "hidden"}`}>
         <div className="flex items-center gap-2 text-sm font-semibold text-neutral-10 dark:text-neutral-95">
           <Sparkles className="h-4 w-4 text-primary-40" />
           Conteúdo do aluno
         </div>
-        <Textarea placeholder="Teoria, exemplos e explicações em Markdown" {...form.register("contentMd")} className="min-h-40" />
-        <Textarea placeholder="Enunciado legado da lição em Markdown" {...form.register("instructionMd")} className="min-h-28" />
+        <Textarea
+          placeholder="Teoria, exemplos e explicações em Markdown"
+          {...form.register("contentMd")}
+          className="min-h-40"
+        />
+        <Textarea
+          placeholder="Enunciado legado da lição em Markdown"
+          {...form.register("instructionMd")}
+          className="min-h-28"
+        />
         <Textarea placeholder="Notas internas do professor" {...form.register("teacherNotesMd")} className="min-h-28" />
       </section>
 
-      <section className="grid gap-3 md:grid-cols-2">
+      <section
+        className={`grid gap-4 rounded-2xl border border-black/8 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/40 ${
+          activeTab === "blocks" ? "" : "hidden"
+        }`}
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="grid gap-1">
+            <span className="text-sm font-semibold text-neutral-10 dark:text-neutral-95">Blocos da licao</span>
+            <p className="text-sm leading-6 text-neutral-10/68 dark:text-neutral-80">
+              Monte a licao por partes. Cada bloco tem um tipo, titulo e conteudo em Markdown.
+            </p>
+          </div>
+          <Button type="button" variant="secondary" onClick={appendNewBlock}>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo bloco
+          </Button>
+        </div>
+
+        <div className="grid gap-4">
+          {blockFields.length === 0 ? (
+            <p className="rounded-2xl border border-dashed border-black/10 bg-white/50 p-4 text-center text-sm text-neutral-10/70 dark:border-white/15 dark:bg-neutral-20/40 dark:text-neutral-80">
+              Nenhum bloco ainda. Clique em "Novo bloco" para comecar.
+            </p>
+          ) : (
+            blockFields.map((field, index) => (
+              <Card key={field.id} className="grid gap-4 border-black/6 bg-white dark:bg-neutral-20/60">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={index === 0}
+                      onClick={() => moveBlockItem(index, -1)}
+                      className="focus-ring rounded-full border border-black/10 bg-white p-1 text-neutral-10 hover:border-primary-60/30 disabled:opacity-30 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
+                      aria-label="Subir bloco"
+                    >
+                      <ArrowUp className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={index === blockFields.length - 1}
+                      onClick={() => moveBlockItem(index, 1)}
+                      className="focus-ring rounded-full border border-black/10 bg-white p-1 text-neutral-10 hover:border-primary-60/30 disabled:opacity-30 dark:border-white/15 dark:bg-neutral-20/60 dark:text-neutral-95"
+                      aria-label="Descer bloco"
+                    >
+                      <ArrowDown className="h-3 w-3" />
+                    </button>
+                    <Badge variant="secondary">Bloco {index + 1}</Badge>
+                  </div>
+                  <Button type="button" variant="ghost" onClick={() => removeBlockItem(index)}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Remover
+                  </Button>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2">
+                  <Controller
+                    control={form.control}
+                    name={`blocks.${index}.type`}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Tipo do bloco" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {lessonBlockTypeSchema.options.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {BLOCK_TYPE_LABELS[type] ?? type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <Input placeholder="Titulo do bloco" {...form.register(`blocks.${index}.title`)} />
+                  <Textarea
+                    placeholder="Conteudo do bloco em Markdown"
+                    {...form.register(`blocks.${index}.contentMd`)}
+                    className="md:col-span-2 min-h-28"
+                  />
+                </div>
+              </Card>
+            ))
+          )}
+        </div>
+      </section>
+
+      <section className={`grid gap-3 md:grid-cols-2 ${activeTab === "publishing" ? "" : "hidden"}`}>
         <Textarea placeholder="Enunciado curto legado" {...form.register("prompt")} className="min-h-24" />
         <Textarea placeholder="História ou contexto" {...form.register("story")} className="min-h-24" />
         <Textarea placeholder="Explicação da resposta" {...form.register("explanation")} className="min-h-24" />
         <Textarea placeholder="Dica geral" {...form.register("tip")} className="min-h-24" />
         <Input type="number" placeholder="Resposta numérica legada" {...form.register("answer")} />
         <Input type="number" placeholder="Ordem da lição" {...form.register("orderIndex")} />
+        <div className="grid gap-2 rounded-2xl border border-black/8 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/40 md:col-span-2">
+          <span className="text-sm font-semibold text-neutral-10 dark:text-neutral-95">Checklist editorial</span>
+          <div className="flex flex-wrap gap-2">
+            {filledRequirements.map((item) => (
+              <Badge key={item.label} variant={item.done ? "primary" : "tertiary"}>
+                {item.done ? "OK" : "Pendente"} - {item.label}
+              </Badge>
+            ))}
+          </div>
+          <p className="text-sm leading-6 text-neutral-10/68 dark:text-neutral-80">
+            A publicacao continua sendo feita pelo botao da linha da licao. Esta aba concentra compatibilidade e
+            pendencias editoriais.
+          </p>
+        </div>
       </section>
 
-      <section className="grid gap-4 rounded-2xl border border-black/8 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/40">
+      <section
+        className={`grid gap-4 rounded-2xl border border-black/8 bg-white/70 p-4 dark:border-white/10 dark:bg-neutral-20/40 ${
+          activeTab === "activities" ? "" : "hidden"
+        }`}
+      >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="grid gap-1">
             <span className="text-sm font-semibold text-neutral-10 dark:text-neutral-95">Atividades da lição</span>
@@ -829,24 +1353,40 @@ function LessonFormFields({ form }: { form: ReturnType<typeof useForm<LessonDraf
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                  <select
-                    className="focus-ring h-12 rounded-2xl border border-black/10 bg-white/90 px-4 text-sm text-neutral-10"
-                    {...form.register(`activities.${index}.type`)}
-                  >
-                    {lessonActivityTypeSchema.options.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))}
-                  </select>
+                  <Controller
+                    control={form.control}
+                    name={`activities.${index}.type`}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Tipo da atividade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {lessonActivityTypeSchema.options.map((type) => (
+                            <SelectItem key={type} value={type}>
+                              {ACTIVITY_TYPE_LABELS[type] ?? type}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
                   {activityType === lessonActivityTypeSchema.enum.TRUE_FALSE ? (
-                    <select
-                      className="focus-ring h-12 rounded-2xl border border-black/10 bg-white/90 px-4 text-sm text-neutral-10"
-                      {...form.register(`activities.${index}.answerKey`)}
-                    >
-                      <option value="verdadeiro">Verdadeiro</option>
-                      <option value="falso">Falso</option>
-                    </select>
+                    <Controller
+                      control={form.control}
+                      name={`activities.${index}.answerKey`}
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Resposta correta" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="verdadeiro">Verdadeiro</SelectItem>
+                            <SelectItem value="falso">Falso</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
                   ) : (
                     <Input
                       placeholder={
@@ -877,7 +1417,11 @@ function LessonFormFields({ form }: { form: ReturnType<typeof useForm<LessonDraf
                     {...form.register(`activities.${index}.feedbackIncorrectMd`)}
                     className="min-h-24"
                   />
-                  <Input type="number" placeholder="Ordem da atividade" {...form.register(`activities.${index}.orderIndex`)} />
+                  <Input
+                    type="number"
+                    placeholder="Ordem da atividade"
+                    {...form.register(`activities.${index}.orderIndex`)}
+                  />
                   {activityType === lessonActivityTypeSchema.enum.MULTIPLE_CHOICE ? (
                     <Textarea
                       placeholder="Opções da múltipla escolha, uma por linha"
@@ -903,7 +1447,12 @@ function LessonFormFields({ form }: { form: ReturnType<typeof useForm<LessonDraf
         </div>
       </section>
 
-      <section className="grid gap-3 xl:grid-cols-2">
+      <section className={`grid gap-3 xl:grid-cols-2 ${activeTab === "preview" ? "" : "hidden"}`}>
+        <div className="xl:col-span-2 flex flex-wrap gap-2">
+          <Badge variant="primary">{lessonType}</Badge>
+          {level ? <Badge variant="secondary">{level}</Badge> : null}
+          {summary ? <span className="text-sm text-neutral-10/70 dark:text-neutral-80">{summary}</span> : null}
+        </div>
         <div className="grid gap-2">
           <div className="flex items-center gap-2 text-sm font-semibold text-neutral-10 dark:text-neutral-95">
             <Clock3 className="h-4 w-4 text-primary-40" />
@@ -947,11 +1496,23 @@ function parseActivityOptionsForForm(optionsJson?: string) {
   }
 }
 
-function reindexActivities(
-  activities: LessonActivityDraftInput[],
-  form: ReturnType<typeof useForm<LessonDraftInput>>
-) {
+function reindexActivities(activities: LessonActivityDraftInput[], form: ReturnType<typeof useForm<LessonDraftInput>>) {
   activities.forEach((_, index) => {
     form.setValue(`activities.${index}.orderIndex`, index, { shouldDirty: true });
+  });
+}
+
+function createEmptyBlock(orderIndex: number): LessonBlockDraftInput {
+  return {
+    type: lessonBlockTypeSchema.enum.THEORY,
+    title: "",
+    contentMd: "",
+    orderIndex
+  };
+}
+
+function reindexBlocks(blocks: LessonBlockDraftInput[], form: ReturnType<typeof useForm<LessonDraftInput>>) {
+  blocks.forEach((_, index) => {
+    form.setValue(`blocks.${index}.orderIndex`, index, { shouldDirty: true });
   });
 }

@@ -11,6 +11,7 @@ const optionalNumberField = z.preprocess((value) => {
 export const roleSchema = z.enum(["STUDENT", "TUTOR", "ADMIN"]);
 export const lessonTypeSchema = z.enum(["EXPLANATION", "PRACTICE", "QUIZ", "REVIEW"]);
 export const lessonActivityTypeSchema = z.enum(["NUMERIC", "MULTIPLE_CHOICE", "TRUE_FALSE", "SHORT_TEXT"]);
+export const lessonBlockTypeSchema = z.enum(["THEORY", "EXAMPLE", "VISUAL", "PRACTICE_INTRO", "SUMMARY"]);
 
 export const loginSchema = z.object({
   email: z.string().email("Digite um e-mail válido."),
@@ -48,6 +49,13 @@ export const moduleDraftSchema = z.object({
 });
 
 export const modulePatchSchema = moduleDraftSchema.partial();
+
+export const lessonBlockDraftSchema = z.object({
+  type: lessonBlockTypeSchema,
+  title: z.string().default(""),
+  contentMd: z.string().default(""),
+  orderIndex: z.coerce.number().int().nonnegative()
+});
 
 export const lessonActivityDraftSchema = z.object({
   type: lessonActivityTypeSchema.default("NUMERIC"),
@@ -121,7 +129,8 @@ export const lessonDraftSchema = z.object({
   goal: z.string().min(1),
   tip: z.string().min(1),
   orderIndex: z.coerce.number().int().nonnegative(),
-  activities: z.array(lessonActivityDraftSchema).min(1, "Adicione ao menos uma atividade.")
+  activities: z.array(lessonActivityDraftSchema).min(1, "Adicione ao menos uma atividade."),
+  blocks: z.array(lessonBlockDraftSchema).optional()
 });
 
 export const lessonPatchSchema = lessonDraftSchema.partial();
@@ -157,6 +166,7 @@ export type SetRoleInput = z.infer<typeof setRoleSchema>;
 export type TutorLinkInput = z.infer<typeof tutorLinkSchema>;
 export type ModuleDraftInput = z.infer<typeof moduleDraftSchema>;
 export type ModulePatchInput = z.infer<typeof modulePatchSchema>;
+export type LessonBlockDraftInput = z.infer<typeof lessonBlockDraftSchema>;
 export type LessonActivityDraftInput = z.infer<typeof lessonActivityDraftSchema>;
 export type LessonDraftInput = z.infer<typeof lessonDraftSchema>;
 export type LessonPatchInput = z.infer<typeof lessonPatchSchema>;
