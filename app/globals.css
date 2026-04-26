@@ -7,10 +7,18 @@
   --foreground: #1A1C1D;
   --reading-size: 1rem;
   --reading-gap: 24px;
+
+  --color-primary-base: theme('colors.primary.base');
+  --color-primary-40: theme('colors.primary.40');
+  --color-secondary-base: theme('colors.secondary.base');
+  --color-secondary-40: theme('colors.secondary.40');
+  --color-tertiary-base: theme('colors.tertiary.base');
+  --color-tertiary-40: theme('colors.tertiary.40');
 }
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {

@@ -80,6 +80,35 @@ const config: Config = {
       },
       boxShadow: {
         soft: "0 20px 60px rgba(57, 89, 184, 0.08)"
+      },
+      keyframes: {
+        "bm-pulse": {
+          "0%, 100%": { opacity: "0.4", transform: "scale(0.85)" },
+          "50%": { opacity: "1", transform: "scale(1.15)" }
+        },
+        "bm-spin-slow": {
+          to: { transform: "rotate(360deg)" }
+        },
+        "bm-float": {
+          "0%, 100%": { transform: "translate(0,0) rotate(0deg)" },
+          "25%": { transform: "translate(8px,-14px) rotate(8deg)" },
+          "50%": { transform: "translate(-6px,10px) rotate(-6deg)" },
+          "75%": { transform: "translate(10px,6px) rotate(4deg)" }
+        },
+        "bm-blink": {
+          "50%": { opacity: "0" }
+        },
+        "bm-slide-in": {
+          from: { opacity: "0", transform: "translateY(6px)" },
+          to: { opacity: "1", transform: "translateY(0)" }
+        }
+      },
+      animation: {
+        "bm-pulse": "bm-pulse 1.6s ease-in-out infinite",
+        "bm-spin-slow": "bm-spin-slow 18s linear infinite",
+        "bm-float": "bm-float 18s ease-in-out infinite",
+        "bm-blink": "bm-blink 1s step-end infinite",
+        "bm-slide-in": "bm-slide-in 0.5s ease both"
       }
     }
   },
