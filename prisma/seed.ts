@@ -118,6 +118,36 @@ async function main() {
           orderIndex: 0
         }
       });
+
+      await prismaDb.lessonBlock.deleteMany({
+        where: { lessonId: lesson.id }
+      });
+
+      await prismaDb.lessonBlock.createMany({
+        data: [
+          {
+            lessonId: lesson.id,
+            type: "SUMMARY",
+            title: "Resumo",
+            contentMd: lesson.story,
+            orderIndex: 0
+          },
+          {
+            lessonId: lesson.id,
+            type: "THEORY",
+            title: "Explicacao",
+            contentMd: lesson.explanation,
+            orderIndex: 1
+          },
+          {
+            lessonId: lesson.id,
+            type: "PRACTICE_INTRO",
+            title: "Atividade",
+            contentMd: lesson.prompt,
+            orderIndex: 2
+          }
+        ]
+      });
     }
   }
 

@@ -51,13 +51,14 @@ describe("zod schemas", () => {
     expect(result.success).toBe(false);
   });
 
-  it("coerces answer value", () => {
+  it("validates submitted activity answer", () => {
     const result = submitAnswerSchema.parse({
       skillId: "addition",
       lessonId: "addition-1",
+      activityId: "activity-1",
       answer: "13"
     });
 
-    expect(result.answer).toBe(13);
+    expect(result.answer).toBe("13");
   });
 });

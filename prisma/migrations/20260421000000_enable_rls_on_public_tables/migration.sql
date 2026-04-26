@@ -2,7 +2,6 @@
 -- No public policies are created here on purpose: application data must be
 -- accessed through the Next.js backend using Prisma, not directly from clients.
 
-ALTER TABLE public."_prisma_migrations" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public."AccessibilityProfile" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public."Attempt" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public."Invitation" ENABLE ROW LEVEL SECURITY;
