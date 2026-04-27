@@ -1,11 +1,71 @@
 "use client";
 
-import { ArrowUpRight, BarChart3, Building2, Code, Cog, Cpu } from "lucide-react";
+import { ArrowRight, ArrowUpRight, BarChart3, Building2, Code, Cog, Cpu, GraduationCap, Menu, X, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-const EQUATIONS = [
+/* ============================================================
+   Types
+   ============================================================ */
+type Tone = "primary" | "secondary" | "tertiary";
+
+interface Equation {
+  lhs: string;
+  mid: string;
+  rhs: string;
+  sol: string;
+}
+
+interface MathConstant {
+  sym: string;
+  digits: string;
+  color: string;
+}
+
+interface Course {
+  name: string;
+  lines: string[];
+  tone: Tone;
+  Icon: LucideIcon;
+}
+
+interface Pillar {
+  tag: string;
+  title: string;
+  body: string;
+  tone: Tone;
+}
+
+interface PersonLink {
+  key: string;
+  val: string;
+  href: string;
+}
+
+interface Person {
+  name: string;
+  role: string;
+  desc: string;
+  course: string;
+  initial: string;
+  constant: number;
+  idx: string;
+  links: PersonLink[];
+}
+
+interface SineWaveProps {
+  color?: string;
+  height?: number;
+  amp?: number;
+  freq?: number;
+  speed?: number;
+}
+
+/* ============================================================
+   Data
+   ============================================================ */
+const EQUATIONS: Equation[] = [
   { lhs: "x² − 5x + 6", mid: "=", rhs: "0", sol: "x ∈ {2, 3}" },
   { lhs: "∫₀¹ 2x dx", mid: "=", rhs: "?", sol: "= 1" },
   { lhs: "lim x→0  sin(x)/x", mid: "=", rhs: "?", sol: "= 1" },
@@ -14,28 +74,50 @@ const EQUATIONS = [
   { lhs: "Σₙ₌₁⁴ n", mid: "=", rhs: "?", sol: "= 10" }
 ];
 
-const CONSTANTS = [
+const CONSTANTS: MathConstant[] = [
   { sym: "π", digits: "3.14159265358979323846", color: "var(--color-primary-40)" },
   { sym: "φ", digits: "1.61803398874989484820", color: "var(--color-tertiary-40)" },
   { sym: "e", digits: "2.71828182845904523536", color: "var(--color-secondary-40)" }
 ];
 
-const FLOAT_SYMBOLS = ["∑", "∫", "√", "π", "∞", "∂", "Δ", "θ", "φ", "λ"];
+const FLOAT_SYMBOLS = ["∑", "∫", "√", "π", "∞", "∂", "Δ", "θ", "φ", "λ"] as const;
 
-const COURSES = [
+const ACCENT_COLORS = [
+  "var(--color-primary-base)",
+  "var(--color-secondary-base)",
+  "var(--color-tertiary-base)"
+] as const;
+
+const COURSES: Course[] = [
   { name: "Ciência da Computação", lines: ["Ciência da", "Computação"], tone: "primary", Icon: Cpu },
   { name: "Engenharia de Software", lines: ["Engenharia de", "Software"], tone: "tertiary", Icon: Code },
   { name: "Engenharia Civil", lines: ["Engenharia", "Civil"], tone: "secondary", Icon: Building2 },
   { name: "Engenharia Mecânica", lines: ["Engenharia", "Mecânica"], tone: "primary", Icon: Cog },
+  { name: "Engenharia de Produção", lines: ["Engenharia de", "Produção"], tone: "tertiary", Icon: BarChart3 }
+];
+
+const PILLARS: Pillar[] = [
   {
-    name: "Engenharia de Produção",
-    lines: ["Engenharia de", "Produção"],
-    tone: "tertiary",
-    Icon: BarChart3
+    tag: "Σ",
+    title: "Soma do que importa",
+    body: "Conteúdos selecionados para cobrir as bases que sustentam todo o resto: aritmética, álgebra, funções e introdução ao cálculo.",
+    tone: "primary"
+  },
+  {
+    tag: "lim",
+    title: "No seu ritmo",
+    body: "Trilhas progressivas com revisões guiadas. Sem pressa, sem julgamento — o foco está no entendimento real.",
+    tone: "secondary"
+  },
+  {
+    tag: "∂",
+    title: "Acompanhamento próximo",
+    body: "Monitores e professor coordenador acompanham a evolução, ajustam o caminho e respondem dúvidas quando surgem.",
+    tone: "tertiary"
   }
 ];
 
-const PEOPLE = [
+const PEOPLE: Person[] = [
   {
     name: "Prof. Dr. Anderson F. L. Maia",
     role: "Professor coordenador",
@@ -46,7 +128,7 @@ const PEOPLE = [
     idx: "P.01",
     links: [
       {
-        key: "↗",
+        key: "escavador",
         val: "Escavador · perfil acadêmico",
         href: "https://www.escavador.com/sobre/3753599/anderson-feitoza-leitao-maia"
       }
@@ -60,7 +142,7 @@ const PEOPLE = [
     initial: "L",
     constant: 1,
     idx: "M.01",
-    links: [{ key: "LI", val: "LinkedIn", href: "https://www.linkedin.com/in/lucas-ts/" }]
+    links: [{ key: "linkedin", val: "LinkedIn", href: "https://www.linkedin.com/in/lucas-ts/" }]
   },
   {
     name: "Gabi",
@@ -70,54 +152,39 @@ const PEOPLE = [
     initial: "G",
     constant: 2,
     idx: "M.02",
-    links: [{ key: "LI", val: "LinkedIn", href: "https://www.linkedin.com/in/gabriela-sousa-de-oliveira//" }]
+    links: [{ key: "linkedin", val: "LinkedIn", href: "https://www.linkedin.com/in/gabriela-sousa-de-oliveira//" }]
   }
 ];
 
-const TONE_TAG: Record<string, string> = {
+const NAV_LINKS = [
+  { id: "projeto", label: "Projeto" },
+  { id: "cursos", label: "Cursos" },
+  { id: "pessoas", label: "Pessoas" },
+  { id: "participar", label: "Participar" }
+] as const;
+
+const TONE_CLASSES: Record<Tone, string> = {
   primary: "bg-primary-95 text-primary-40",
   secondary: "bg-secondary-95 text-secondary-40",
   tertiary: "bg-tertiary-95 text-tertiary-40"
 };
 
-function EscavadorIcon() {
-  return (
-    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M16.5 5.5H9a1.5 1.5 0 00-1.5 1.5v10A1.5 1.5 0 009 18.5h7.5"
-        stroke="currentColor"
-        strokeWidth={1.7}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M10 9.25h5M10 12h4.25M10 14.75h5" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" />
-      <path
-        d="M15.5 5.5l2 2-2 2"
-        stroke="currentColor"
-        strokeWidth={1.7}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+const ORBITAL_FILL: Record<Tone, string> = {
+  primary: "#EFF0FF",
+  secondary: "#BAFFE6",
+  tertiary: "#F7EDFF"
+};
+
+const ORBITAL_TEXT: Record<Tone, string> = {
+  primary: "var(--color-primary-40)",
+  secondary: "var(--color-secondary-40)",
+  tertiary: "var(--color-tertiary-40)"
+};
 
 /* ============================================================
    SineWave
    ============================================================ */
-function SineWave({
-  color = "var(--color-primary-base)",
-  height = 80,
-  amp = 14,
-  freq = 0.03,
-  speed = 0.012
-}: {
-  color?: string;
-  height?: number;
-  amp?: number;
-  freq?: number;
-  speed?: number;
-}) {
+function SineWave({ color = "var(--color-primary-base)", height = 80, amp = 14, freq = 0.03, speed = 0.012 }: SineWaveProps) {
   const ref = useRef<SVGPathElement | null>(null);
 
   useEffect(() => {
@@ -241,9 +308,7 @@ function FloatingSymbols({ count = 8 }: { count?: number }) {
         size: 18 + Math.random() * 28,
         delay: Math.random() * 6,
         dur: 14 + Math.random() * 10,
-        color: (["var(--color-primary-base)", "var(--color-secondary-base)", "var(--color-tertiary-base)"] as const)[
-          i % 3
-        ]
+        color: ACCENT_COLORS[i % 3]
       })),
     [count]
   );
@@ -278,7 +343,6 @@ function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const ids = ["projeto", "cursos", "pessoas", "participar"];
     const obs = new IntersectionObserver(
       (entries) =>
         entries.forEach((e) => {
@@ -286,19 +350,12 @@ function Header() {
         }),
       { rootMargin: "-35% 0px -55% 0px" }
     );
-    ids.forEach((id) => {
+    NAV_LINKS.forEach(({ id }) => {
       const el = document.getElementById(id);
       if (el) obs.observe(el);
     });
     return () => obs.disconnect();
   }, []);
-
-  const links: [string, string][] = [
-    ["projeto", "Projeto"],
-    ["cursos", "Cursos"],
-    ["pessoas", "Pessoas"],
-    ["participar", "Participar"]
-  ];
 
   return (
     <>
@@ -316,7 +373,7 @@ function Header() {
         </Link>
 
         <nav className="flex items-center gap-7 justify-self-center max-[700px]:hidden">
-          {links.map(([id, label]) => (
+          {NAV_LINKS.map(({ id, label }) => (
             <a
               key={id}
               href={`#${id}`}
@@ -348,22 +405,14 @@ function Header() {
             aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
             aria-expanded={menuOpen}
           >
-            {menuOpen ? (
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" />
-              </svg>
-            ) : (
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                <path d="M3 8h18M3 16h18" strokeLinecap="round" />
-              </svg>
-            )}
+            {menuOpen ? <X size={16} strokeWidth={2.5} /> : <Menu size={16} strokeWidth={2.5} />}
           </button>
         </div>
       </header>
 
       {menuOpen && (
         <nav className="hidden max-[700px]:flex flex-col gap-1 sticky top-[62px] z-40 bg-white/95 backdrop-blur-[14px] border-b border-neutral-10/[8%] px-5 py-3">
-          {links.map(([id, label]) => (
+          {NAV_LINKS.map(({ id, label }) => (
             <a
               key={id}
               href={`#${id}`}
@@ -405,10 +454,7 @@ function Hero() {
 
           <h1 className="text-[clamp(40px,6vw,72px)] font-normal leading-[1.02] tracking-[-0.025em] mt-6 max-w-[18ch] text-balance">
             Apoio em{" "}
-            <em
-              className="not-italic font-medium relative bg-gradient-to-r from-primary-40 to-tertiary-40 bg-clip-text text-transparent after:content-[''] after:absolute after:left-0 after:right-0 after:bottom-1 after:h-2 after:bg-secondary-95 after:z-[-1] 
-            after:rounded"
-            >
+            <em className="not-italic font-medium relative bg-gradient-to-r from-primary-40 to-tertiary-40 bg-clip-text text-transparent after:content-[''] after:absolute after:left-0 after:right-0 after:bottom-1 after:h-2 after:bg-secondary-95 after:z-[-1] after:rounded">
               matemática básica
             </em>{" "}
             para todos os cursos do campus.
@@ -416,7 +462,7 @@ function Hero() {
 
           <p className="mt-6 max-w-[56ch] text-[clamp(15px,1.4vw,18px)] leading-[1.65] text-neutral-10/70">
             O Projeto Base Matemática fortalece a aprendizagem de estudantes que precisam de uma base mais sólida no
-            início da trajetória acadêmica — com materiais claros, monitores presentes e o acesso por convite do tutor.
+            início da trajetória acadêmica com materiais claros, monitores presentes e o acesso por convite do tutor.
           </p>
 
           <div className="flex flex-wrap gap-3 mt-9">
@@ -425,9 +471,7 @@ function Hero() {
               className="inline-flex items-center gap-2 px-[22px] py-[13px] rounded-full text-sm font-medium bg-primary-base text-white hover:bg-primary-40 transition-colors active:translate-y-px"
             >
               Quero participar
-              <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path d="M5 12h14M13 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ArrowRight size={16} strokeWidth={2} />
             </a>
             <a
               href="#cursos"
@@ -483,27 +527,6 @@ function Hero() {
    Pillars
    ============================================================ */
 function Pillars() {
-  const pillars = [
-    {
-      tag: "Σ",
-      title: "Soma do que importa",
-      body: "Conteúdos selecionados para cobrir as bases que sustentam todo o resto: aritmética, álgebra, funções e introdução ao cálculo.",
-      tone: "primary"
-    },
-    {
-      tag: "lim",
-      title: "No seu ritmo",
-      body: "Trilhas progressivas com revisões guiadas. Sem pressa, sem julgamento — o foco está no entendimento real.",
-      tone: "secondary"
-    },
-    {
-      tag: "∂",
-      title: "Acompanhamento próximo",
-      body: "Monitores e professor coordenador acompanham a evolução, ajustam o caminho e respondem dúvidas quando surgem.",
-      tone: "tertiary"
-    }
-  ];
-
   return (
     <section className="relative py-[clamp(64px,8vw,110px)] border-b border-neutral-10/[8%]">
       <div className="grid gap-3 mb-12">
@@ -518,14 +541,12 @@ function Pillars() {
       </div>
 
       <div className="grid grid-cols-3 gap-px bg-neutral-10/[8%] border border-neutral-10/[8%] rounded-[18px] overflow-hidden max-[880px]:grid-cols-1">
-        {pillars.map((p, i) => (
+        {PILLARS.map((p, i) => (
           <article
             key={p.title}
             className="bg-neutral-base p-[32px_28px_24px] grid gap-3.5 relative transition-colors hover:bg-neutral-95"
           >
-            <div
-              className={`w-[46px] h-[46px] rounded-[12px] grid place-items-center font-mono text-lg font-medium ${TONE_TAG[p.tone]}`}
-            >
+            <div className={`w-[46px] h-[46px] rounded-[12px] grid place-items-center font-mono text-lg font-medium ${TONE_CLASSES[p.tone]}`}>
               <span>{p.tag}</span>
             </div>
             <div className="absolute top-7 right-7 font-mono text-[11px] text-neutral-10/35 tracking-[0.08em]">
@@ -544,34 +565,26 @@ function Pillars() {
    CoursesOrbital
    ============================================================ */
 function CoursesOrbital() {
-  const cx = 300,
-    cy = 310;
-  const orbitR = 170,
-    nodeR = 28,
-    labelR = 225;
-
-  const toneFill: Record<string, string> = {
-    primary: "#EFF0FF",
-    secondary: "#BAFFE6",
-    tertiary: "#F7EDFF"
-  };
-  const toneText: Record<string, string> = {
-    primary: "var(--color-primary-40)",
-    secondary: "var(--color-secondary-40)",
-    tertiary: "var(--color-tertiary-40)"
-  };
+  const cx = 300;
+  const cy = 310;
+  const orbitR = 170;
+  const nodeR = 28;
+  const labelR = 225;
 
   const nodes = COURSES.map((c, i) => {
     const angle = -Math.PI / 2 + (i * 2 * Math.PI) / COURSES.length;
-    const cos = Math.cos(angle),
-      sin = Math.sin(angle);
-    const x = cx + orbitR * cos;
-    const y = cy + orbitR * sin;
-    const lx = cx + labelR * cos;
-    const ly = cy + labelR * sin;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
     const textAnchor: "start" | "end" | "middle" = cos > 0.25 ? "start" : cos < -0.25 ? "end" : "middle";
 
-    return { ...c, x, y, lx, ly, textAnchor };
+    return {
+      ...c,
+      x: cx + orbitR * cos,
+      y: cy + orbitR * sin,
+      lx: cx + labelR * cos,
+      ly: cy + labelR * sin,
+      textAnchor
+    };
   });
 
   return (
@@ -582,64 +595,23 @@ function CoursesOrbital() {
         role="img"
         aria-label="Diagrama orbital dos cursos atendidos pelo projeto"
       >
-        {/* Outer accent ring */}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={orbitR + 52}
-          fill="none"
-          stroke="rgba(56,88,183,0.10)"
-          strokeWidth={1}
-          strokeDasharray="2 6"
-        />
-        {/* Main orbit ring */}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={orbitR}
-          fill="none"
-          stroke="rgba(56,88,183,0.20)"
-          strokeWidth={1}
-          strokeDasharray="5 8"
-        />
-        {/* Inner ring */}
-        <circle
-          cx={cx}
-          cy={cy}
-          r={54}
-          fill="none"
-          stroke="rgba(56,88,183,0.12)"
-          strokeWidth={0.75}
-          strokeDasharray="2 5"
-        />
+        <circle cx={cx} cy={cy} r={orbitR + 52} fill="none" stroke="rgba(56,88,183,0.10)" strokeWidth={1} strokeDasharray="2 6" />
+        <circle cx={cx} cy={cy} r={orbitR} fill="none" stroke="rgba(56,88,183,0.20)" strokeWidth={1} strokeDasharray="5 8" />
+        <circle cx={cx} cy={cy} r={54} fill="none" stroke="rgba(56,88,183,0.12)" strokeWidth={0.75} strokeDasharray="2 5" />
 
-        {/* Connection lines */}
         {nodes.map((c) => (
           <line
             key={`l-${c.name}`}
-            x1={cx}
-            y1={cy}
-            x2={c.x}
-            y2={c.y}
-            stroke="rgba(56,88,183,0.16)"
-            strokeWidth={0.85}
-            strokeDasharray="3 6"
+            x1={cx} y1={cy} x2={c.x} y2={c.y}
+            stroke="rgba(56,88,183,0.16)" strokeWidth={0.85} strokeDasharray="3 6"
           />
         ))}
 
-        {/* Course nodes */}
         {nodes.map((c) => (
           <g key={c.name}>
-            <circle
-              cx={c.x}
-              cy={c.y}
-              r={nodeR}
-              fill={toneFill[c.tone]}
-              stroke="rgba(26,28,29,0.09)"
-              strokeWidth={0.8}
-            />
+            <circle cx={c.x} cy={c.y} r={nodeR} fill={ORBITAL_FILL[c.tone]} stroke="rgba(26,28,29,0.09)" strokeWidth={0.8} />
             <g transform={`translate(${c.x - 10} ${c.y - 10})`} aria-hidden>
-              <c.Icon size={20} strokeWidth={2} color={toneText[c.tone]} />
+              <c.Icon size={20} strokeWidth={2} color={ORBITAL_TEXT[c.tone]} />
             </g>
             {c.lines.map((line, li) => (
               <text
@@ -658,29 +630,11 @@ function CoursesOrbital() {
           </g>
         ))}
 
-        {/* Center node */}
         <circle cx={cx} cy={cy} r={52} fill="white" stroke="rgba(26,28,29,0.1)" strokeWidth={1} />
-        <text
-          x={cx}
-          y={cy - 8}
-          textAnchor="middle"
-          fontSize={17}
-          fontWeight={700}
-          fontFamily="inherit"
-          fill="#1A1C1D"
-          letterSpacing={-0.5}
-        >
+        <text x={cx} y={cy - 8} textAnchor="middle" fontSize={17} fontWeight={700} fontFamily="inherit" fill="#1A1C1D" letterSpacing={-0.5}>
           UFC
         </text>
-        <text
-          x={cx}
-          y={cy + 10}
-          textAnchor="middle"
-          fontSize={12}
-          fontFamily="ui-monospace, monospace"
-          fill="rgba(26,28,29,0.42)"
-          letterSpacing={0.3}
-        >
+        <text x={cx} y={cy + 10} textAnchor="middle" fontSize={12} fontFamily="ui-monospace, monospace" fill="rgba(26,28,29,0.42)" letterSpacing={0.3}>
           Campus Russas
         </text>
       </svg>
@@ -730,9 +684,9 @@ function Cursos() {
 /* ============================================================
    PersonCard
    ============================================================ */
-function PersonCard({ p }: { p: (typeof PEOPLE)[number] }) {
+function PersonCard({ p }: { p: Person }) {
   return (
-    <article className="bg-neutral-base border border-neutral-10/[8%] rounded-[18px] p-7 grid gap-[18px] relative transition-all hover:border-neutral-10/[12%] hover:-translate-y-0.5">
+    <article className="bg-neutral-100 border border-primary-30 rounded-[18px] p-7 grid gap-[18px] relative transition-all hover:border-neutral-10/[12%] hover:-translate-y-0.5">
       <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3.5">
         <div className="relative w-14 h-14 rounded-full bg-primary-95 text-primary-40 grid place-items-center text-[22px] font-medium">
           <span>{p.initial}</span>
@@ -741,15 +695,7 @@ function PersonCard({ p }: { p: (typeof PEOPLE)[number] }) {
             viewBox="0 0 100 100"
             aria-hidden
           >
-            <circle
-              cx={50}
-              cy={50}
-              r={46}
-              fill="none"
-              stroke="var(--color-primary-base)"
-              strokeWidth={0.6}
-              strokeDasharray="2 4"
-            />
+            <circle cx={50} cy={50} r={46} fill="none" stroke="var(--color-primary-base)" strokeWidth={0.6} strokeDasharray="2 4" />
           </svg>
         </div>
         <div className="grid gap-0.5">
@@ -762,16 +708,13 @@ function PersonCard({ p }: { p: (typeof PEOPLE)[number] }) {
       <p className="m-0 text-sm leading-[1.65] text-neutral-10/70">{p.desc}</p>
 
       <div className="w-fit flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary-95 text-secondary-40 text-xs font-medium">
-        <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-          <path d="M2 8l10-4 10 4-10 4-10-4z" strokeLinejoin="round" />
-          <path d="M6 10v6a6 6 0 0012 0v-6" strokeLinecap="round" />
-        </svg>
+        <GraduationCap size={14} strokeWidth={2} />
         <span>{p.course}</span>
       </div>
 
       {p.links.map((link) => (
         <a
-          key={link.key + link.val}
+          key={link.key}
           className="w-fit flex gap-2.5 items-center p-2 rounded-lg transition-colors hover:underline"
           href={link.href}
           target={link.href.startsWith("http") ? "_blank" : undefined}
