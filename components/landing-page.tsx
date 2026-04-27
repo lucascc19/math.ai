@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Building2, Code, Cog, Cpu } from "lucide-react";
+import { ArrowUpRight, BarChart3, Building2, Code, Cog, Cpu } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -45,7 +45,6 @@ const PEOPLE = [
     constant: 0,
     idx: "P.01",
     links: [
-      { key: "LI", val: "LinkedIn a definir", href: "#" },
       {
         key: "↗",
         val: "Escavador · perfil acadêmico",
@@ -61,10 +60,7 @@ const PEOPLE = [
     initial: "L",
     constant: 1,
     idx: "M.01",
-    links: [
-      { key: "IG", val: "@lucas.a.definir", href: "#" },
-      { key: "LI", val: "a definir", href: "#" }
-    ]
+    links: [{ key: "LI", val: "LinkedIn", href: "https://www.linkedin.com/in/lucas-ts/" }]
   },
   {
     name: "Gabi",
@@ -74,10 +70,7 @@ const PEOPLE = [
     initial: "G",
     constant: 2,
     idx: "M.02",
-    links: [
-      { key: "IG", val: "@gabi.a.definir", href: "#" },
-      { key: "LI", val: "a definir", href: "#" }
-    ]
+    links: [{ key: "LI", val: "LinkedIn", href: "https://www.linkedin.com/in/gabriela-sousa-de-oliveira//" }]
   }
 ];
 
@@ -86,6 +79,28 @@ const TONE_TAG: Record<string, string> = {
   secondary: "bg-secondary-95 text-secondary-40",
   tertiary: "bg-tertiary-95 text-tertiary-40"
 };
+
+function EscavadorIcon() {
+  return (
+    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M16.5 5.5H9a1.5 1.5 0 00-1.5 1.5v10A1.5 1.5 0 009 18.5h7.5"
+        stroke="currentColor"
+        strokeWidth={1.7}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M10 9.25h5M10 12h4.25M10 14.75h5" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" />
+      <path
+        d="M15.5 5.5l2 2-2 2"
+        stroke="currentColor"
+        strokeWidth={1.7}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 /* ============================================================
    SineWave
@@ -294,7 +309,7 @@ function Header() {
           </div>
           <div className="grid leading-[1.05]">
             <span className="text-sm font-semibold tracking-[-0.01em]">Base Matemática</span>
-            <span className="font-mono text-[10.5px] text-neutral-10/55 mt-1 tracking-[0.02em]">
+            <span className="font-mono text-xs text-neutral-10/55 mt-1 tracking-[0.02em]">
               projeto de apoio acadêmico
             </span>
           </div>
@@ -311,7 +326,7 @@ function Header() {
                 after:ease-out after:origin-left
                 ${
                   active === id
-                    ? "text-neutral-10 after:scale-x-100"
+                    ? "text-primary-base after:scale-x-100 after:bg-primary-base"
                     : "text-neutral-10/55 hover:text-neutral-10 after:scale-x-0"
                 }`}
             >
@@ -323,7 +338,7 @@ function Header() {
         <div className="flex gap-2.5 items-center">
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 px-4 py-[9px] rounded-full text-[13px] font-medium text-neutral-10 bg-transparent border border-neutral-10/[12%] hover:bg-neutral-10 hover:text-white transition-all active:translate-y-px whitespace-nowrap"
+            className="inline-flex items-center gap-2 px-4 py-[9px] rounded-full text-[13px] font-medium text-neutral-10 bg-transparent border border-neutral-10/[12%] hover:bg-primary-base hover:text-white transition-all active:translate-y-px whitespace-nowrap"
           >
             Login
           </Link>
@@ -355,7 +370,7 @@ function Header() {
               onClick={() => setMenuOpen(false)}
               className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 active === id
-                  ? "text-neutral-10 bg-neutral-10/5"
+                  ? "text-primary-base bg-primary-95"
                   : "text-neutral-10/55 hover:text-neutral-10 hover:bg-neutral-10/5"
               }`}
             >
@@ -390,7 +405,10 @@ function Hero() {
 
           <h1 className="text-[clamp(40px,6vw,72px)] font-normal leading-[1.02] tracking-[-0.025em] mt-6 max-w-[18ch] text-balance">
             Apoio em{" "}
-            <em className="not-italic font-medium relative bg-gradient-to-r from-primary-40 to-tertiary-40 bg-clip-text text-transparent after:content-[''] after:absolute after:left-0 after:right-0 after:bottom-1 after:h-2 after:bg-secondary-95 after:z-[-1] after:rounded">
+            <em
+              className="not-italic font-medium relative bg-gradient-to-r from-primary-40 to-tertiary-40 bg-clip-text text-transparent after:content-[''] after:absolute after:left-0 after:right-0 after:bottom-1 after:h-2 after:bg-secondary-95 after:z-[-1] 
+            after:rounded"
+            >
               matemática básica
             </em>{" "}
             para todos os cursos do campus.
@@ -404,7 +422,7 @@ function Hero() {
           <div className="flex flex-wrap gap-3 mt-9">
             <a
               href="#participar"
-              className="inline-flex items-center gap-2 px-[22px] py-[13px] rounded-full text-sm font-medium bg-neutral-10 text-white hover:bg-black transition-colors active:translate-y-px"
+              className="inline-flex items-center gap-2 px-[22px] py-[13px] rounded-full text-sm font-medium bg-primary-base text-white hover:bg-primary-40 transition-colors active:translate-y-px"
             >
               Quero participar
               <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -559,8 +577,8 @@ function CoursesOrbital() {
   return (
     <div className="flex justify-center w-full">
       <svg
-        viewBox="0 0 600 600"
-        className="w-full max-w-[520px]"
+        viewBox="-48 0 696 600"
+        className="w-full max-w-[620px] overflow-visible"
         role="img"
         aria-label="Diagrama orbital dos cursos atendidos pelo projeto"
       >
@@ -570,7 +588,7 @@ function CoursesOrbital() {
           cy={cy}
           r={orbitR + 52}
           fill="none"
-          stroke="rgba(26,28,29,0.04)"
+          stroke="rgba(56,88,183,0.10)"
           strokeWidth={1}
           strokeDasharray="2 6"
         />
@@ -580,8 +598,8 @@ function CoursesOrbital() {
           cy={cy}
           r={orbitR}
           fill="none"
-          stroke="rgba(26,28,29,0.13)"
-          strokeWidth={0.9}
+          stroke="rgba(56,88,183,0.20)"
+          strokeWidth={1}
           strokeDasharray="5 8"
         />
         {/* Inner ring */}
@@ -590,8 +608,8 @@ function CoursesOrbital() {
           cy={cy}
           r={54}
           fill="none"
-          stroke="rgba(26,28,29,0.06)"
-          strokeWidth={0.6}
+          stroke="rgba(56,88,183,0.12)"
+          strokeWidth={0.75}
           strokeDasharray="2 5"
         />
 
@@ -603,8 +621,8 @@ function CoursesOrbital() {
             y1={cy}
             x2={c.x}
             y2={c.y}
-            stroke="rgba(26,28,29,0.08)"
-            strokeWidth={0.7}
+            stroke="rgba(56,88,183,0.16)"
+            strokeWidth={0.85}
             strokeDasharray="3 6"
           />
         ))}
@@ -627,9 +645,9 @@ function CoursesOrbital() {
               <text
                 key={line}
                 x={c.lx}
-                y={c.ly - (c.lines.length - 1) * 6.5 + li * 13}
+                y={c.ly - (c.lines.length - 1) * 8 + li * 16}
                 textAnchor={c.textAnchor}
-                fontSize={10.5}
+                fontSize={14}
                 fontFamily="inherit"
                 fill="rgba(26,28,29,0.62)"
                 fontWeight={500}
@@ -658,7 +676,7 @@ function CoursesOrbital() {
           x={cx}
           y={cy + 10}
           textAnchor="middle"
-          fontSize={9.5}
+          fontSize={12}
           fontFamily="ui-monospace, monospace"
           fill="rgba(26,28,29,0.42)"
           letterSpacing={0.3}
@@ -751,24 +769,18 @@ function PersonCard({ p }: { p: (typeof PEOPLE)[number] }) {
         <span>{p.course}</span>
       </div>
 
-      <ConstantTicker idx={p.constant} />
-
-      <div className="grid gap-1 border-t border-neutral-10/[8%] pt-4">
-        {p.links.map((l) => (
-          <a
-            key={l.key + l.val}
-            className="grid grid-cols-[36px_1fr] gap-2.5 items-center px-1 py-2 rounded-lg transition-colors hover:bg-neutral-10/5"
-            href={l.href}
-            target={l.href.startsWith("http") ? "_blank" : undefined}
-            rel="noreferrer"
-          >
-            <span className="w-7 h-7 rounded-[6px] bg-neutral-10 text-white grid place-items-center font-mono text-[11px] font-medium">
-              {l.key}
-            </span>
-            <span className="text-[13px] text-neutral-10/70">{l.val}</span>
-          </a>
-        ))}
-      </div>
+      {p.links.map((link) => (
+        <a
+          key={link.key + link.val}
+          className="w-fit flex gap-2.5 items-center p-2 rounded-lg transition-colors hover:underline"
+          href={link.href}
+          target={link.href.startsWith("http") ? "_blank" : undefined}
+          rel="noreferrer"
+        >
+          <span className="inline-block text-sm text-neutral-10/70">{link.val}</span>
+          <ArrowUpRight width={18} height={18} />
+        </a>
+      ))}
     </article>
   );
 }
@@ -829,45 +841,41 @@ function Participar() {
 
         <div className="mt-10 grid grid-cols-2 gap-5 max-[800px]:grid-cols-1">
           <a
-            href="#forms-a-definir"
-            className="grid gap-3.5 p-7 bg-neutral-10 text-white border border-neutral-10 rounded-[18px] transition-all hover:bg-neutral-0 hover:-translate-y-0.5 relative overflow-hidden"
+            href="https://forms.gle/wVbLf4tmTjnadwPy9"
+            target="_blank"
+            className="grid gap-3.5 p-7 bg-primary-base text-white border border-primary-base rounded-[18px] transition-all hover:bg-primary-40 hover:border-primary-40 hover:-translate-y-0.5 relative overflow-hidden"
           >
             <div className="flex items-center gap-3 font-mono text-[11px] tracking-[0.08em] uppercase">
               <span className="text-white/55">01</span>
               <span className="px-2.5 py-1 bg-white/10 rounded-full text-white">formulário</span>
             </div>
             <h3 className="m-0 text-[22px] font-medium tracking-[-0.01em] text-white">Quero entrar na lista</h3>
-            <p className="m-0 text-sm leading-[1.6] text-white/70 max-w-[38ch]">
+            <p className="m-0 text-base leading-[1.6] text-neutral-base max-w-[38ch]">
               Preencha o formulário de interesse — em breve você receberá o convite do tutor para acessar a plataforma.
             </p>
-            <span className="flex items-center gap-2 font-mono text-[13px] mt-1 text-white">
+            <span className="flex items-center gap-2 font-mono text-sm mt-1 text-neutral-base">
               Abrir formulário
-              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path d="M7 17L17 7M9 7h8v8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ArrowUpRight width={18} height={18} />
             </span>
-            <span className="font-mono text-[11px] text-white/50 tracking-[0.04em]">link a definir</span>
           </a>
 
           <a
             href="https://www.instagram.com/projetobasematematica"
             target="_blank"
             rel="noreferrer"
-            className="grid gap-3.5 p-7 bg-neutral-base border border-neutral-10/[8%] rounded-[18px] transition-all hover:border-neutral-10 hover:-translate-y-0.5 relative overflow-hidden"
+            className="grid gap-3.5 p-7 bg-neutral-base border border-neutral-10/[8%] rounded-[18px] transition-all hover:border-primary-base hover:-translate-y-0.5 relative overflow-hidden"
           >
             <div className="flex items-center gap-3 font-mono text-[11px] tracking-[0.08em] uppercase">
               <span className="text-neutral-10/35">02</span>
-              <span className="px-2.5 py-1 bg-neutral-95 rounded-full text-neutral-10/70">instagram</span>
+              <span className="px-2.5 py-1 bg-primary-80 rounded-full text-neutral-100">instagram</span>
             </div>
             <h3 className="m-0 text-[22px] font-medium tracking-[-0.01em]">Acompanhe o projeto</h3>
-            <p className="m-0 text-sm leading-[1.6] text-neutral-10/70 max-w-[38ch]">
+            <p className="m-0 text-base leading-[1.6] text-neutral-10/70 max-w-[38ch]">
               No Instagram saem avisos, novas chamadas e novidades. É o jeito mais simples de ficar por dentro.
             </p>
-            <span className="flex items-center gap-2 font-mono text-[13px] mt-1 text-neutral-10">
+            <span className="flex items-center gap-2 font-mono text-sm mt-1 text-neutral-10">
               @projetobasematematica
-              <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path d="M7 17L17 7M9 7h8v8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <ArrowUpRight width={18} height={18} />
             </span>
           </a>
         </div>
