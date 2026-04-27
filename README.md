@@ -1,6 +1,6 @@
 # Projeto Base Matemática
 
-Sistema full-stack inicial para apoio a alunos com TDAH e TEA em matematica basica.
+Sistema full-stack inicial para apoio a alunos com TDAH e TEA em matemática básica.
 
 ## Stack escolhida
 
@@ -13,27 +13,27 @@ Sistema full-stack inicial para apoio a alunos com TDAH e TEA em matematica basi
 - Prisma
 - Vitest + Playwright
 
-## Decisoes importantes
+## Decisões importantes
 
 - `Next.js` foi escolhido no lugar de `Vite` porque o projeto precisa de front, backend e deploy simples na Vercel.
 - `fetch` nativo foi preferido no lugar de `axios` para reduzir bundle, evitar dependencia extra e aproveitar melhor o runtime do Next.
-- Prisma esta preparado para `PostgreSQL`, ideal para deploy gratuito em `Neon` ou `Supabase`.
+- Prisma está preparado para `PostgreSQL`, ideal para deploy gratuito em `Neon` ou `Supabase`.
 
 ## O que mudou na primeira feature
 
-- autenticacao com senha no proprio app
-- sessao persistida em cookie `httpOnly`
-- progresso, respostas e acessibilidade vinculados ao usuario autenticado
-- logout invalida a sessao atual
+- autenticação com senha no próprio app
+- sessão persistida em cookie `httpOnly`
+- progresso, respostas e acessibilidade vinculados ao usuário autenticado
+- logout invalida a sessão atual
 
 ## Credenciais iniciais
 
-- usuario demo: `aluno@basematematica.dev`
+- usuário demo: `aluno@basematematica.dev`
 - senha demo: `demo12345`
 
 ## Como rodar localmente
 
-1. Instale as dependencias.
+1. Instale as dependências.
 2. Copie `.env.example` para `.env`.
 3. Suba o banco local com Docker.
 4. Gere o Prisma Client, rode as migrations e popule o banco.
@@ -49,7 +49,7 @@ pnpm db:seed
 pnpm dev
 ```
 
-## Variaveis de ambiente
+## Variáveis de ambiente
 
 - `DATABASE_URL`
 - `AUTH_SECRET`
@@ -59,7 +59,7 @@ pnpm dev
 - `MAIL_FROM_NAME`
 - `RESEND_API_KEY`
 
-Se `MAIL_PROVIDER` nao estiver vazio, o app envia convites e links de recuperacao de senha por e-mail. O provider suportado agora e `resend`. Sem provider configurado, o conteudo do e-mail continua sendo registrado no console em desenvolvimento.
+Se `MAIL_PROVIDER` não estiver vazio, o app envia convites e links de recuperação de senha por e-mail. O provider suportado agora é `resend`. Sem provider configurado, o conteúdo do e-mail continua sendo registrado no console em desenvolvimento.
 
 ### Testar envio local com Resend
 
@@ -76,15 +76,15 @@ Se `MAIL_PROVIDER` nao estiver vazio, o app envia convites e links de recuperaca
 
 ## Estrutura principal
 
-- `app/`: rotas, paginas e APIs no App Router
-- `components/`: interface reutilizavel e telas principais
-- `lib/`: dominio, schemas e servicos de backend
+- `app/`: rotas, páginas e APIs no App Router
+- `components/`: interface reutilizável e telas principais
+- `lib/`: domínio, schemas e serviços de backend
 - `prisma/`: schema, migrations e seed
-- `tests/`: testes unitarios e e2e
+- `tests/`: testes unitários e e2e
 
-## Proximos passos
+## Próximos passos
 
-- finalizar o conteudo institucional definitivo da landing page
-- implementar autorizacao real por papel
-- criar CRUD administrativo completo para trilhas e licoes
-- ampliar analytics, relatorios e revisoes adaptativas
+- finalizar o conteúdo institucional definitivo da landing page
+- implementar autorização real por papel
+- criar CRUD administrativo completo para trilhas e lições
+- ampliar analytics, relatórios e revisões adaptativas
